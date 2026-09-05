@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -6,6 +6,10 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  useWindowDimensions,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+  Animated,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigation } from "../App";
@@ -18,32 +22,32 @@ import EducationModal from "../components/EducationModal";
 import ShareModal from "../components/ShareModal";
 
 export default function Home() {
+  const { width: SCREEN_WIDTH } = useWindowDimensions();
   const { navigate } = useNavigation<StackNavigation>();
   const dispatch = useAppDispatch();
 
   const { user } = useAppSelector((state) => state.auth);
   const { credits, stats, history } = useAppSelector((state) => state.game);
 
+  const [activeTab, setActiveTab] = useState<number>(0); // 0: Game, 1: Statistik
   const [showAdModal, setShowAdModal] = useState(false);
   const [showEduModal, setShowEduModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
 
-  const handleStartGame = () => {
-    if (credits <= 0) {
-      Alert.alert(
-        "Kredit Bermain Habis!",
-        "Kreditmu sudah 0. Dalam judi online nyata, ini adalah momen saat kamu boncos dan tergoda top-up uang asli. Tonton simulasi iklan untuk mendapatkan +5 kredit!",
-        [
-          { text: "Batal", style: "cancel" },
-          {
-            text: "Tonton Iklan (+5 Kredit)",
-            onPress: () => setShowAdModal(true),
-          },
-        ],
-      );
-      return;
-    }
-    navigate("Game");
+  const horizontalScrollRef = useRef<ScrollView>(null);
+
+  const handleTabPress = (index: number) => {
+    setActiveTab(index);
+    horizontalScrollRef.current?.scrollTo({
+      x: index * SCREEN_WIDTH,
+      animated: true,
+    });
+  };
+
+  const onMomentumScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const offsetX = e.nativeEvent.contentOffset.x;
+    const page = Math.round(offsetX / SCREEN_WIDTH);
+    setActiveTab(page);
   };
 
   const handleLogout = () => {
@@ -82,204 +86,301 @@ export default function Home() {
 
   return (
     <View style={styles.container}>
+      {/* 1. Bar Profil Atas (Selalu Menetap di Atas Kedua Tab) */}
+      <View style={styles.topBar}>
+        <View style={styles.profileInfo}>
+          <Text style={styles.greetingText} numberOfLines={1}>
+            Halo, {user?.displayName || "Pemain Cerdas"}
+          </Text>
+          <Text style={styles.statusSubtext} numberOfLines={1}>
+            {user?.email || "Akun Google Terhubung"}
+          </Text>
+        </View>
+        <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+          <Text style={styles.logoutBtnText}>Keluar</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* 2. Switcher Tab Swipe (Game & Statistik) */}
+      <View style={styles.tabBarContainer}>
+        <View style={styles.tabBar}>
+          <TouchableOpacity
+            style={[
+              styles.tabItem,
+              activeTab === 0 && styles.tabItemActiveGame,
+            ]}
+            onPress={() => handleTabPress(0)}
+            activeOpacity={0.7}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === 0 && styles.tabTextActiveGame,
+              ]}
+            >
+              🎮 Game
+            </Text>
+            <View style={styles.tabBadge}>
+              <Text style={styles.tabBadgeText}>3 Game</Text>
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.tabItem,
+              activeTab === 1 && styles.tabItemActiveStats,
+            ]}
+            onPress={() => handleTabPress(1)}
+            activeOpacity={0.7}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === 1 && styles.tabTextActiveStats,
+              ]}
+            >
+              📊 Statistik
+            </Text>
+            <View
+              style={[
+                styles.tabBadge,
+                credits === 0 && { backgroundColor: "#FF3D00" },
+              ]}
+            >
+              <Text style={styles.tabBadgeText}>{credits} Kredit</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* 3. Horizontal Pager (Bisa Di-Swipe Kiri & Kanan) */}
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+        ref={horizontalScrollRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={onMomentumScrollEnd}
+        style={styles.pager}
       >
-        {/* Bar Atas: Profil & Tombol Keluar */}
-        <View style={styles.topBar}>
-          <View>
-            <Text style={styles.greetingText}>
-              Halo, {user?.displayName || "Pemain Cerdas"}
-            </Text>
-            <Text style={styles.statusSubtext}>
-              {user?.email || "Akun Google Terhubung"}
-            </Text>
-          </View>
-          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
-            <Text style={styles.logoutBtnText}>Keluar</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Banner Edukatif */}
-        <TouchableOpacity
-          style={styles.bannerContainer}
-          onPress={() => setShowEduModal(true)}
-        >
-          <View style={styles.bannerBadge}>
-            <Text style={styles.bannerBadgeText}>FAKTA BANDAR</Text>
-          </View>
-          <Text style={styles.bannerText}>
-            "Pemain tidak pernah bisa menang melawan algoritma bandar."
-          </Text>
-          <Text style={styles.bannerCta}>Ketuk untuk pelajari rahasianya →</Text>
-        </TouchableOpacity>
-
-        {/* Kartu Statistik & Kredit */}
-        <StatCard
-          credits={credits}
-          totalPlayed={stats.totalPlayed}
-          totalWins={stats.totalWins}
-          totalLosses={stats.totalLosses}
-          moneyLost={stats.simulatedMoneyLost}
-          totalAdsWatched={stats.totalAdsWatched}
-          onTopUpPress={() => setShowAdModal(true)}
-        />
-
-        {/* Section Title: Pilihan Game */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>PILIH SIMULASI GAME ANTI-JUDOL</Text>
-          <Text style={styles.sectionSubtitle}>
-            Buktikan sendiri bagaimana 3 jenis game ini memanipulasi pemain!
-          </Text>
-        </View>
-
-        {/* Kartu Game 1: Tebak Angka */}
-        <TouchableOpacity
-          style={[styles.gameCard, styles.gameCardCyan]}
-          onPress={() => {
-            if (credits <= 0) {
-              setShowAdModal(true);
-            } else {
-              navigate("Game");
-            }
-          }}
-        >
-          <View style={styles.gameCardBadge}>
-            <Text style={styles.gameCardBadgeText}>MANIPULASI PROBABILITAS</Text>
-          </View>
-          <View style={styles.gameCardContent}>
-            <Text style={styles.gameCardIcon}>🎲</Text>
-            <View style={styles.gameCardInfo}>
-              <Text style={styles.gameCardTitle}>1. Tebak Angka</Text>
-              <Text style={styles.gameCardDesc}>
-                Tebak angka lebih tinggi atau rendah. Bandar mengunci kekalahan setelah memberi 1 kemenangan umpan!
-              </Text>
-              <View style={styles.gameCardFooter}>
-                <Text style={styles.gameCardCost}>Biaya: 1 Kredit</Text>
-                <Text style={styles.gameCardCta}>Mainkan →</Text>
-              </View>
-            </View>
-          </View>
-        </TouchableOpacity>
-
-        {/* Kartu Game 2: Roket Boncos (Crash) */}
-        <TouchableOpacity
-          style={[styles.gameCard, styles.gameCardGreen]}
-          onPress={() => {
-            if (credits <= 0) {
-              setShowAdModal(true);
-            } else {
-              navigate("CrashGame");
-            }
-          }}
-        >
-          <View style={[styles.gameCardBadge, styles.badgeOrange]}>
-            <Text style={styles.gameCardBadgeText}>JEBAKAN FOMO & KESERAKAHAN</Text>
-          </View>
-          <View style={styles.gameCardContent}>
-            <Text style={styles.gameCardIcon}>🚀</Text>
-            <View style={styles.gameCardInfo}>
-              <Text style={styles.gameCardTitle}>2. Roket Boncos (Crash)</Text>
-              <Text style={styles.gameCardDesc}>
-                Tarik saldo sebelum roket meledak. Bandar sering meledakkannya instan di 1.02x!
-              </Text>
-              <View style={styles.gameCardFooter}>
-                <Text style={styles.gameCardCost}>Biaya: 1 Kredit</Text>
-                <Text style={[styles.gameCardCta, styles.textGreen]}>Luncurkan →</Text>
-              </View>
-            </View>
-          </View>
-        </TouchableOpacity>
-
-        {/* Kartu Game 3: Roda Putar Ilusi (Lucky Wheel) */}
-        <TouchableOpacity
-          style={[styles.gameCard, styles.gameCardPurple]}
-          onPress={() => {
-            if (credits <= 0) {
-              setShowAdModal(true);
-            } else {
-              navigate("WheelGame");
-            }
-          }}
-        >
-          <View style={[styles.gameCardBadge, styles.badgePurple]}>
-            <Text style={styles.gameCardBadgeText}>ILUSI NYARIS JACKPOT</Text>
-          </View>
-          <View style={styles.gameCardContent}>
-            <Text style={styles.gameCardIcon}>🎡</Text>
-            <View style={styles.gameCardInfo}>
-              <Text style={styles.gameCardTitle}>3. Roda Putar Ilusi</Text>
-              <Text style={styles.gameCardDesc}>
-                Jarum roda sengaja berhenti 1 milimeter di samping JACKPOT x10 agar kamu kecanduan spin!
-              </Text>
-              <View style={styles.gameCardFooter}>
-                <Text style={styles.gameCardCost}>Biaya: 1 Kredit</Text>
-                <Text style={[styles.gameCardCta, styles.textPurple]}>Putar Roda →</Text>
-              </View>
-            </View>
-          </View>
-        </TouchableOpacity>
-
-        {/* Baris Tombol Aksi Sekunder */}
-        <View style={styles.actionRow}>
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.shareBtn]}
-            onPress={() => setShowShareModal(true)}
+        {/* ================= TAB 1: PILIHAN GAME ================= */}
+        <View style={[styles.tabContentPage, { width: SCREEN_WIDTH }]}>
+          <ScrollView
+            contentContainerStyle={styles.scrollPageContent}
+            showsVerticalScrollIndicator={false}
           >
-            <Text style={styles.actionBtnIcon}>📢</Text>
-            <Text style={styles.shareBtnText}>Bagikan Sosialisasi</Text>
-          </TouchableOpacity>
+            {/* Banner Edukatif */}
+            <TouchableOpacity
+              style={styles.bannerContainer}
+              onPress={() => setShowEduModal(true)}
+            >
+              <View style={styles.bannerBadge}>
+                <Text style={styles.bannerBadgeText}>FAKTA BANDAR</Text>
+              </View>
+              <Text style={styles.bannerText}>
+                "Pemain tidak pernah bisa menang melawan algoritma bandar."
+              </Text>
+              <Text style={styles.bannerCta}>
+                Ketuk untuk pelajari rahasianya →
+              </Text>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.actionBtn, styles.eduBtn]}
-            onPress={() => setShowEduModal(true)}
-          >
-            <Text style={styles.actionBtnIcon}>🧠</Text>
-            <Text style={styles.eduBtnText}>Bongkar Trik</Text>
-          </TouchableOpacity>
-        </View>
+            {/* Sub-header Pilihan Game */}
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>PILIH SIMULASI GAME ANTI-JUDOL</Text>
+              <Text style={styles.sectionSubtitle}>
+                Buktikan sendiri bagaimana 3 jenis game ini memanipulasi pemain!
+              </Text>
+            </View>
 
-        {/* Riwayat Putaran Terakhir */}
-        <View style={styles.historyCard}>
-          <View style={styles.historyHeader}>
-            <Text style={styles.historyTitle}>Riwayat Putaran Terakhir</Text>
-            {stats.totalPlayed > 0 && (
-              <TouchableOpacity onPress={handleResetStats}>
-                <Text style={styles.resetText}>Reset</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {history.length === 0 ? (
-            <Text style={styles.emptyHistory}>
-              Belum ada putaran. Pilih salah satu game di atas untuk membuktikan manipulasi bandar!
-            </Text>
-          ) : (
-            history.slice(0, 6).map((item, idx) => (
-              <View key={idx} style={styles.historyItem}>
-                <View style={styles.historyLeft}>
-                  <Text
-                    style={[
-                      styles.historyOutcome,
-                      item.winner ? styles.textWin : styles.textLoss,
-                    ]}
-                  >
-                    {item.gameTitle ? `[${item.gameTitle}] ` : ""}
-                    {item.winner ? "✅ Menang (Umpan)" : "❌ Rungkad (Kalah)"}
+            {/* Kartu Game 1: Tebak Angka */}
+            <TouchableOpacity
+              style={[styles.gameCard, styles.gameCardCyan]}
+              onPress={() => {
+                if (credits <= 0) {
+                  setShowAdModal(true);
+                } else {
+                  navigate("Game");
+                }
+              }}
+            >
+              <View style={styles.gameCardBadge}>
+                <Text style={styles.gameCardBadgeText}>
+                  MANIPULASI PROBABILITAS
+                </Text>
+              </View>
+              <View style={styles.gameCardContent}>
+                <Text style={styles.gameCardIcon}>🎲</Text>
+                <View style={styles.gameCardInfo}>
+                  <Text style={styles.gameCardTitle}>1. Tebak Angka</Text>
+                  <Text style={styles.gameCardDesc}>
+                    Tebak angka lebih tinggi atau rendah. Bandar mengunci kekalahan setelah memberi 1 kemenangan umpan!
                   </Text>
-                  <Text style={styles.historyDetail}>
-                    {item.gameType === "crash"
-                      ? `Tarik di ${(item.multiplier || 1).toFixed(2)}x (Ledak: ${(item.crashPoint || 1).toFixed(2)}x)`
-                      : item.gameType === "wheel"
-                      ? `Hasil Roda: ${item.segmentTitle || "Zonk"}`
-                      : `Angka: ${item.baseNumber} → ${item.resultNumber} (${item.choice === "higher" ? "Tinggi" : "Rendah"})`}
-                  </Text>
+                  <View style={styles.gameCardFooter}>
+                    <Text style={styles.gameCardCost}>Biaya: 1 Kredit</Text>
+                    <Text style={styles.gameCardCta}>Mainkan →</Text>
+                  </View>
                 </View>
-                <Text style={styles.historyCost}>-1 Kredit</Text>
               </View>
-            ))
-          )}
+            </TouchableOpacity>
+
+            {/* Kartu Game 2: Roket Boncos (Crash) */}
+            <TouchableOpacity
+              style={[styles.gameCard, styles.gameCardGreen]}
+              onPress={() => {
+                if (credits <= 0) {
+                  setShowAdModal(true);
+                } else {
+                  navigate("CrashGame");
+                }
+              }}
+            >
+              <View style={[styles.gameCardBadge, styles.badgeOrange]}>
+                <Text style={styles.gameCardBadgeText}>
+                  JEBAKAN FOMO & KESERAKAHAN
+                </Text>
+              </View>
+              <View style={styles.gameCardContent}>
+                <Text style={styles.gameCardIcon}>🚀</Text>
+                <View style={styles.gameCardInfo}>
+                  <Text style={styles.gameCardTitle}>
+                    2. Roket Boncos (Crash)
+                  </Text>
+                  <Text style={styles.gameCardDesc}>
+                    Tarik saldo sebelum roket meledak. Bandar sering meledakkannya instan di 1.02x!
+                  </Text>
+                  <View style={styles.gameCardFooter}>
+                    <Text style={styles.gameCardCost}>Biaya: 1 Kredit</Text>
+                    <Text style={[styles.gameCardCta, styles.textGreen]}>
+                      Luncurkan →
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </TouchableOpacity>
+
+            {/* Kartu Game 3: Roda Putar Ilusi (Lucky Wheel) */}
+            <TouchableOpacity
+              style={[styles.gameCard, styles.gameCardPurple]}
+              onPress={() => {
+                if (credits <= 0) {
+                  setShowAdModal(true);
+                } else {
+                  navigate("WheelGame");
+                }
+              }}
+            >
+              <View style={[styles.gameCardBadge, styles.badgePurple]}>
+                <Text style={styles.gameCardBadgeText}>
+                  ILUSI NYARIS JACKPOT
+                </Text>
+              </View>
+              <View style={styles.gameCardContent}>
+                <Text style={styles.gameCardIcon}>🎡</Text>
+                <View style={styles.gameCardInfo}>
+                  <Text style={styles.gameCardTitle}>3. Roda Putar Ilusi</Text>
+                  <Text style={styles.gameCardDesc}>
+                    Jarum roda sengaja berhenti 1 milimeter di samping JACKPOT x10 agar kamu kecanduan spin!
+                  </Text>
+                  <View style={styles.gameCardFooter}>
+                    <Text style={styles.gameCardCost}>Biaya: 1 Kredit</Text>
+                    <Text style={[styles.gameCardCta, styles.textPurple]}>
+                      Putar Roda →
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </TouchableOpacity>
+
+            {/* Baris Tombol Aksi Sekunder */}
+            <View style={styles.actionRow}>
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.shareBtn]}
+                onPress={() => setShowShareModal(true)}
+              >
+                <Text style={styles.actionBtnIcon}>📢</Text>
+                <Text style={styles.shareBtnText}>Bagikan Sosialisasi</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.eduBtn]}
+                onPress={() => setShowEduModal(true)}
+              >
+                <Text style={styles.actionBtnIcon}>🧠</Text>
+                <Text style={styles.eduBtnText}>Bongkar Trik</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </View>
+
+        {/* ================= TAB 2: STATISTIK & RIWAYAT ================= */}
+        <View style={[styles.tabContentPage, { width: SCREEN_WIDTH }]}>
+          <ScrollView
+            contentContainerStyle={styles.scrollPageContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Kartu Statistik & Kredit */}
+            <StatCard
+              credits={credits}
+              totalPlayed={stats.totalPlayed}
+              totalWins={stats.totalWins}
+              totalLosses={stats.totalLosses}
+              moneyLost={stats.simulatedMoneyLost}
+              totalAdsWatched={stats.totalAdsWatched}
+              onTopUpPress={() => setShowAdModal(true)}
+            />
+
+            {/* Riwayat Putaran Terakhir */}
+            <View style={styles.historyCard}>
+              <View style={styles.historyHeader}>
+                <Text style={styles.historyTitle}>Riwayat Putaran Terakhir</Text>
+                {stats.totalPlayed > 0 && (
+                  <TouchableOpacity onPress={handleResetStats}>
+                    <Text style={styles.resetText}>Reset</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+
+              {history.length === 0 ? (
+                <Text style={styles.emptyHistory}>
+                  Belum ada riwayat permainan. Swipe ke tab "Pilihan Game" untuk mulai mencoba simulasi!
+                </Text>
+              ) : (
+                history.slice(0, 10).map((item, idx) => (
+                  <View key={idx} style={styles.historyItem}>
+                    <View style={styles.historyLeft}>
+                      <Text
+                        style={[
+                          styles.historyOutcome,
+                          item.winner ? styles.textWin : styles.textLoss,
+                        ]}
+                      >
+                        {item.gameTitle ? `[${item.gameTitle}] ` : ""}
+                        {item.winner ? "✅ Menang (Umpan)" : "❌ Rungkad (Kalah)"}
+                      </Text>
+                      <Text style={styles.historyDetail}>
+                        {item.gameType === "crash"
+                          ? `Tarik di ${(item.multiplier || 1).toFixed(2)}x (Ledak: ${(item.crashPoint || 1).toFixed(2)}x)`
+                          : item.gameType === "wheel"
+                            ? `Hasil Roda: ${item.segmentTitle || "Zonk"}`
+                            : `Angka: ${item.baseNumber} → ${item.resultNumber} (${item.choice === "higher" ? "Tinggi" : "Rendah"})`}
+                      </Text>
+                    </View>
+                    <Text style={styles.historyCost}>-1 Kredit</Text>
+                  </View>
+                ))
+              )}
+            </View>
+
+            {/* Catatan Edukasi Keuangan */}
+            <View style={styles.financeInsightBox}>
+              <Text style={styles.financeInsightTitle}>
+                📉 Pelajaran Keuangan:
+              </Text>
+              <Text style={styles.financeInsightText}>
+                Total uang boncos simulasi (Rp {stats.simulatedMoneyLost.toLocaleString("id-ID")}) menunjukkan betapa cepatnya uang terbuang sia-sia hanya dalam beberapa puluh putaran judi online.
+              </Text>
+            </View>
+          </ScrollView>
         </View>
       </ScrollView>
 
@@ -310,18 +411,23 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#0B121E",
   },
-  scrollContent: {
-    padding: 20,
-    paddingTop: 48,
-    gap: 16,
-  },
   topBar: {
+    paddingHorizontal: 20,
+    paddingTop: 48,
+    paddingBottom: 12,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    backgroundColor: "#0B121E",
+    borderBottomWidth: 1,
+    borderBottomColor: "#172236",
+  },
+  profileInfo: {
+    flex: 1,
+    marginRight: 12,
   },
   greetingText: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "900",
     color: "#FFFFFF",
   },
@@ -342,6 +448,84 @@ const styles = StyleSheet.create({
     color: "#FF8A80",
     fontSize: 12,
     fontWeight: "700",
+  },
+  tabBarContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: "#0B121E",
+  },
+  tabBar: {
+    flexDirection: "row",
+    backgroundColor: "#121A2A",
+    borderRadius: 14,
+    padding: 4,
+    borderWidth: 1,
+    borderColor: "#1E2B42",
+  },
+  tabItem: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    borderRadius: 10,
+    gap: 6,
+  },
+  tabItemActiveGame: {
+    backgroundColor: "#1A2B42",
+    borderWidth: 1,
+    borderColor: "#00E5FF",
+    shadowColor: "#00E5FF",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  tabItemActiveStats: {
+    backgroundColor: "#1D283E",
+    borderWidth: 1,
+    borderColor: "#FFB300",
+    shadowColor: "#FFB300",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  tabText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#6F85A3",
+  },
+  tabTextActiveGame: {
+    color: "#00E5FF",
+    fontWeight: "900",
+  },
+  tabTextActiveStats: {
+    color: "#FFB300",
+    fontWeight: "900",
+  },
+  tabBadge: {
+    backgroundColor: "#0E1826",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  tabBadgeText: {
+    color: "#A2B6CF",
+    fontSize: 9,
+    fontWeight: "800",
+  },
+  pager: {
+    flex: 1,
+  },
+  tabContentPage: {
+    flex: 1,
+  },
+  scrollPageContent: {
+    padding: 16,
+    paddingTop: 8,
+    paddingBottom: 36,
+    gap: 14,
   },
   bannerContainer: {
     backgroundColor: "#161D2B",
@@ -378,7 +562,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   sectionHeader: {
-    marginTop: 4,
+    marginTop: 2,
     marginBottom: -4,
   },
   sectionTitle: {
@@ -485,6 +669,7 @@ const styles = StyleSheet.create({
   actionRow: {
     flexDirection: "row",
     gap: 10,
+    marginTop: 4,
   },
   actionBtn: {
     flex: 1,
@@ -524,7 +709,6 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1,
     borderColor: "#1E2A3E",
-    marginTop: 4,
   },
   historyHeader: {
     flexDirection: "row",
@@ -582,5 +766,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "700",
     marginLeft: 8,
+  },
+  financeInsightBox: {
+    backgroundColor: "#1A1523",
+    padding: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "#FF5252",
+  },
+  financeInsightTitle: {
+    color: "#FF5252",
+    fontSize: 12,
+    fontWeight: "800",
+    marginBottom: 4,
+  },
+  financeInsightText: {
+    color: "#E2C6C6",
+    fontSize: 11,
+    lineHeight: 16,
   },
 });
