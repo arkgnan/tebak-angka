@@ -1,10 +1,16 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface GameRoundResult {
+  gameType?: "higher-lower" | "crash" | "wheel";
+  gameTitle?: string;
   winner: boolean;
-  baseNumber: number;
-  resultNumber: number;
-  choice: "higher" | "lower";
+  baseNumber?: number;
+  resultNumber?: number;
+  choice?: "higher" | "lower";
+  multiplier?: number;
+  crashPoint?: number;
+  rewardCredits?: number;
+  segmentTitle?: string;
   explanation: string;
   consecutiveLosses: number;
   timestamp: number;
@@ -98,12 +104,10 @@ const gameSlice = createSlice({
       if (winner) {
         state.stats.totalWins += 1;
         if (choice === "higher") {
-          // Harus lebih tinggi dari baseNumber
           const min = baseNumber + 1;
           const max = Math.min(99, baseNumber + 20);
           resultNumber = Math.floor(Math.random() * (max - min + 1)) + min;
         } else {
-          // Harus lebih rendah dari baseNumber
           const min = Math.max(1, baseNumber - 20);
           const max = baseNumber - 1;
           resultNumber = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -111,12 +115,10 @@ const gameSlice = createSlice({
       } else {
         state.stats.totalLosses += 1;
         if (choice === "higher") {
-          // Pilihan higher tapi kalah -> angka keluar lebih rendah atau sama
           const min = Math.max(1, baseNumber - 20);
           const max = baseNumber;
           resultNumber = Math.floor(Math.random() * (max - min + 1)) + min;
         } else {
-          // Pilihan lower tapi kalah -> angka keluar lebih tinggi atau sama
           const min = baseNumber;
           const max = Math.min(99, baseNumber + 20);
           resultNumber = Math.floor(Math.random() * (max - min + 1)) + min;
@@ -124,6 +126,8 @@ const gameSlice = createSlice({
       }
 
       const roundResult: GameRoundResult = {
+        gameType: "higher-lower",
+        gameTitle: "Tebak Angka",
         winner,
         baseNumber,
         resultNumber,
@@ -134,11 +138,102 @@ const gameSlice = createSlice({
       };
 
       state.lastRound = roundResult;
-      state.history = [roundResult, ...state.history.slice(0, 19)]; // Simpan 20 riwayat terakhir
+      state.history = [roundResult, ...state.history.slice(0, 19)];
+    },
+
+    playCrashRound: (
+      state,
+      action: PayloadAction<{
+        cashedOut: boolean;
+        multiplier: number;
+        crashPoint: number;
+      }>,
+    ) => {
+      if (state.credits <= 0) return;
+
+      const { cashedOut, multiplier, crashPoint } = action.payload;
+
+      state.stats.totalPlayed += 1;
+      state.stats.simulatedMoneyLost += 50000;
+
+      let explanation = "";
+      if (cashedOut) {
+        // Menang cashout sebelum ledakan
+        const profit = Math.max(1, Math.round(multiplier));
+        state.credits = state.credits - 1 + profit;
+        state.stats.totalWins += 1;
+        state.lastWon = true;
+        state.consecutiveLosses = 0;
+        explanation = `Berhasil Tarik di ${multiplier.toFixed(2)}x (Roket meledak di ${crashPoint.toFixed(2)}x)! Bandar sengaja meloloskanmu sekali untuk memancing taruhan lebih besar di putaran berikutnya!`;
+      } else {
+        // Kalah / meledak
+        state.credits -= 1;
+        state.stats.totalLosses += 1;
+        state.lastWon = false;
+        state.consecutiveLosses += 1;
+        explanation = `Roket Meledak di ${crashPoint.toFixed(2)}x sebelum ditarik! Inilah jebakan FOMO judol: pemain selalu menunggu pengali lebih tinggi, sementara algoritma bandar sudah mematok ledakan di awal!`;
+      }
+
+      const roundResult: GameRoundResult = {
+        gameType: "crash",
+        gameTitle: "Roket Boncos",
+        winner: cashedOut,
+        multiplier,
+        crashPoint,
+        explanation,
+        consecutiveLosses: state.consecutiveLosses,
+        timestamp: Date.now(),
+      };
+
+      state.lastRound = roundResult;
+      state.history = [roundResult, ...state.history.slice(0, 19)];
+    },
+
+    playWheelRound: (
+      state,
+      action: PayloadAction<{
+        segmentTitle: string;
+        rewardCredits: number;
+        winner: boolean;
+        isNearMiss: boolean;
+        explanation: string;
+      }>,
+    ) => {
+      if (state.credits <= 0) return;
+
+      const { segmentTitle, rewardCredits, winner, explanation } = action.payload;
+
+      // Taruhan 1 kredit
+      state.credits = Math.max(0, state.credits - 1 + rewardCredits);
+      state.stats.totalPlayed += 1;
+      state.stats.simulatedMoneyLost += 50000;
+
+      if (winner) {
+        state.stats.totalWins += 1;
+        state.lastWon = true;
+        state.consecutiveLosses = 0;
+      } else {
+        state.stats.totalLosses += 1;
+        state.lastWon = false;
+        state.consecutiveLosses += 1;
+      }
+
+      const roundResult: GameRoundResult = {
+        gameType: "wheel",
+        gameTitle: "Roda Putar Ilusi",
+        winner,
+        rewardCredits,
+        segmentTitle,
+        explanation,
+        consecutiveLosses: state.consecutiveLosses,
+        timestamp: Date.now(),
+      };
+
+      state.lastRound = roundResult;
+      state.history = [roundResult, ...state.history.slice(0, 19)];
     },
 
     watchAdReward: (state) => {
-      // Menonton iklan menambahkan 5 kredit (sesuai instruksi pengguna)
       state.credits += 5;
       state.stats.totalAdsWatched += 1;
     },
@@ -161,5 +256,11 @@ const gameSlice = createSlice({
   },
 });
 
-export const { playRound, watchAdReward, resetGameStats } = gameSlice.actions;
+export const {
+  playRound,
+  playCrashRound,
+  playWheelRound,
+  watchAdReward,
+  resetGameStats,
+} = gameSlice.actions;
 export default gameSlice.reducer;

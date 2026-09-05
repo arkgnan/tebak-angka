@@ -55,16 +55,16 @@ export default function Game() {
 
   // Navigasi ke Result setelah lastRound diperbarui
   useEffect(() => {
-    if (lastRound && isProcessing) {
+    if (lastRound && isProcessing && lastRound.gameType === "higher-lower") {
       navigate("Result", {
         winner: lastRound.winner,
-        result: lastRound.resultNumber,
-        baseNumber: lastRound.baseNumber,
-        choice: lastRound.choice,
+        result: lastRound.resultNumber ?? 50,
+        baseNumber: lastRound.baseNumber ?? baseNumber,
+        choice: lastRound.choice ?? "higher",
         explanation: lastRound.explanation,
       });
     }
-  }, [lastRound, isProcessing, navigate]);
+  }, [lastRound, isProcessing, navigate, baseNumber]);
 
   return (
     <View style={styles.container}>

@@ -10,7 +10,7 @@ import {
 import { useNavigation } from "@react-navigation/native";
 import { StackNavigation } from "../App";
 import { useAppDispatch, useAppSelector } from "../hooks/useRedux";
-import { googleSignIn, setGuestLogin, clearError } from "../store/slices/authSlice";
+import { googleSignIn, clearError } from "../store/slices/authSlice";
 
 export default function Login() {
   const { navigate } = useNavigation<StackNavigation>();
@@ -26,11 +26,6 @@ export default function Login() {
   const handleGoogleSignIn = () => {
     dispatch(clearError());
     dispatch(googleSignIn());
-  };
-
-  const handleGuestLogin = () => {
-    dispatch(clearError());
-    dispatch(setGuestLogin());
   };
 
   return (
@@ -70,7 +65,7 @@ export default function Login() {
 
           {error && (
             <View style={styles.errorBox}>
-              <Text style={styles.errorTitle}>⚠️ Info Otentikasi</Text>
+              <Text style={styles.errorTitle}>⚠️ Gagal Masuk</Text>
               <Text style={styles.errorText}>{error}</Text>
             </View>
           )}
@@ -89,25 +84,6 @@ export default function Login() {
                 <Text style={styles.googleBtnText}>Masuk dengan Google</Text>
               </>
             )}
-          </TouchableOpacity>
-
-          {/* Pemisah ATAU */}
-          <View style={styles.dividerContainer}>
-            <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>ATAU</Text>
-            <View style={styles.dividerLine} />
-          </View>
-
-          {/* Tombol Mode Tamu / Demo Expo Go */}
-          <TouchableOpacity
-            style={styles.guestBtn}
-            onPress={handleGuestLogin}
-            disabled={loading}
-          >
-            <Text style={styles.guestIcon}>🎮</Text>
-            <Text style={styles.guestBtnText}>
-              Coba Mode Tamu (Bypass / Expo Go)
-            </Text>
           </TouchableOpacity>
         </View>
 

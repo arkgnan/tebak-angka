@@ -27,9 +27,14 @@ export const googleSignIn = createAsyncThunk(
     try {
       if (!GoogleSignin || typeof GoogleSignin.hasPlayServices !== "function") {
         return rejectWithValue(
-          "Google Sign-In native memerlukan Development Build (APK). Silakan pilih 'Mode Tamu' untuk mencoba di Expo Go!",
+          "Google Sign-In native memerlukan Development Build (APK).",
         );
       }
+
+      GoogleSignin.configure({
+        webClientId:
+          "392591531045-s08rbnllclp4q96vsii18j6h2mftpk06.apps.googleusercontent.com",
+      });
 
       // Periksa dukungan Google Play Services
       await GoogleSignin.hasPlayServices({
@@ -69,7 +74,7 @@ export const googleSignIn = createAsyncThunk(
       const errMsg = error?.message || "";
       if (errMsg.includes("DEVELOPER_ERROR") || error?.code === "10" || errMsg.includes("10")) {
         return rejectWithValue(
-          "Google Sign-In Native tidak dapat berjalan di Expo Go (Perbedaan Package Name host.exp.exponent vs com.arkgnan.tebakangka & SHA-1). Silakan klik 'Coba Mode Tamu' di bawah untuk langsung mencoba aplikasi, atau buat Development Build (APK)!"
+          "DEVELOPER_ERROR (Kode 10): SHA-1 Fingerprint perangkat lokal Anda belum didaftarkan di Firebase Console, atau Google Auth Provider belum di-aktifkan di Firebase Authentication."
         );
       }
       return rejectWithValue(
