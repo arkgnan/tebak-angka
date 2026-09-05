@@ -1,0 +1,68 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Expo
+.expo/
+dist/
+web-build/
+
+# Native Android Builds & Caches
+android/app/build/
+android/build/
+android/.gradle/
+android/.cxx/
+android/local.properties
+android/*.iml
+android/app/*.iml
+android/.idea/
+
+# Keystores (keep debug.keystore for team development, ignore release/production keys)
+*.jks
+*.keystore
+!android/app/debug.keystore
+
+# Standalone Build Packages (AAB & APK)
+*.apk
+*.aab
+*.ipa
+build-*.aab
+
+# Native iOS (if added in the future)
+ios/Pods/
+ios/build/
+ios/*.xcworkspace/xcuserdata/
+ios/*.xcodeproj/xcuserdata/
+ios/*.xcassets/
+*.mode1v3
+*.mode2v3
+*.moved-aside
+*.pbxuser
+*.perspectivev3
+
+# Logs & Temporary Files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+.npm/
+
+# Environment Variables & Sensitive Secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE & Editor Configs
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.sublime-workspace
+*.sublime-project
+.DS_Store
+Thumbs.db
