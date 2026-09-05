@@ -44,6 +44,7 @@ export default function AdRewardModal({
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
+    let fallbackTimeout: NodeJS.Timeout;
 
     if (visible) {
       setCountdown(5);
@@ -61,7 +62,15 @@ export default function AdRewardModal({
       } else {
         try {
           const MobileAds = require("react-native-google-mobile-ads");
+          const mobileAdsDefault = MobileAds.default || MobileAds;
           const { RewardedAd, RewardedAdEventType, AdEventType, TestIds } = MobileAds;
+
+          // Inisialisasi MobileAds jika belum
+          if (typeof mobileAdsDefault === "function") {
+            try {
+              mobileAdsDefault().initialize().catch(() => {});
+            } catch (e) {}
+          }
 
           const adUnitId = __DEV__
             ? (TestIds?.REWARDED || GOOGLE_TEST_REWARDED_ID)
@@ -109,13 +118,22 @@ export default function AdRewardModal({
             (error: any) => {
               console.log("AdMob AdEventType.ERROR:", error);
               setAdmobLoading(false);
-              setAdmobStatus("Mode Simulasi (AdMob offline / akun baru)");
+              setAdmobStatus("Mode Simulasi (AdMob offline / kuota)");
             }
           );
 
           rewarded.load();
 
+          // Fallback jika AdMob membutuhkan waktu lebih dari 3 detik untuk load
+          fallbackTimeout = setTimeout(() => {
+            if (!adLoaded) {
+              setAdmobLoading(false);
+              setAdmobStatus("Mode Simulasi Aktif");
+            }
+          }, 3000);
+
           return () => {
+            if (fallbackTimeout) clearTimeout(fallbackTimeout);
             unsubscribeLoaded();
             unsubscribeEarned();
             unsubscribeClosed();
@@ -124,7 +142,7 @@ export default function AdRewardModal({
         } catch (err) {
           setIsNativeAdMob(false);
           setAdmobLoading(false);
-          setAdmobStatus("Mode Simulasi Iklan (Expo Go)");
+          setAdmobStatus("Mode Simulasi Iklan");
         }
       }
 
@@ -134,6 +152,7 @@ export default function AdRewardModal({
           if (prev <= 1) {
             clearInterval(timer);
             setIsFinished(true);
+            setAdmobLoading(false);
             return 0;
           }
           return prev - 1;
@@ -143,6 +162,7 @@ export default function AdRewardModal({
 
     return () => {
       if (timer) clearInterval(timer);
+      if (fallbackTimeout) clearTimeout(fallbackTimeout);
     };
   }, [visible]);
 
@@ -189,7 +209,7 @@ export default function AdRewardModal({
             </Text>
             <Text style={styles.videoFakeStar}>⭐⭐⭐⭐⭐</Text>
 
-            {admobLoading ? (
+            {admobLoading && !isFinished ? (
               <View style={styles.progressContainer}>
                 <ActivityIndicator color="#00E5FF" size="small" />
                 <Text style={styles.progressText}>{admobStatus}</Text>

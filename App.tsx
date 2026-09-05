@@ -9,6 +9,8 @@ import Home from "./screens/Home";
 import Game from "./screens/Game";
 import Result from "./screens/Result";
 import Login from "./screens/Login";
+import CrashGame from "./screens/CrashGame";
+import WheelGame from "./screens/WheelGame";
 
 // Catatan: Pada React Native Android, Firebase diinisialisasi secara otomatis
 // melalui file google-services.json saat aplikasi pertama kali dijalankan.
@@ -19,6 +21,8 @@ export type RootStackParamList = {
   Login: undefined;
   Home: undefined;
   Game: undefined;
+  CrashGame: undefined;
+  WheelGame: undefined;
   Result: {
     winner: boolean;
     result: number;
@@ -45,6 +49,8 @@ const MainApp = () => {
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="Home" component={Home} />
         <Stack.Screen name="Game" component={Game} />
+        <Stack.Screen name="CrashGame" component={CrashGame} />
+        <Stack.Screen name="WheelGame" component={WheelGame} />
         <Stack.Screen name="Result" component={Result} />
       </Stack.Navigator>
     </NavigationContainer>
