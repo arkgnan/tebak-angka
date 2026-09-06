@@ -1,0 +1,15 @@
+diff --git a/node_modules/expo-av/build/index.js b/node_modules/expo-av/build/index.js
+index 92797e8..2052f55 100644
+--- a/node_modules/expo-av/build/index.js
++++ b/node_modules/expo-av/build/index.js
+@@ -1,7 +1,7 @@
+ import * as Audio from './Audio';
+ export { Audio };
+ export { default as Video } from './Video';
+-export * from './AV.types';
+-export * from './Audio.types';
+-export * from './Video.types';
++export * from './AV.types.js';
++export * from './Audio.types.js';
++export * from './Video.types.js';
+ //# sourceMappingURL=index.js.map

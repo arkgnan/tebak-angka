@@ -13,6 +13,7 @@ import { StackNavigation } from "../App";
 import { useAppDispatch, useAppSelector } from "../hooks/useRedux";
 import { playSlotRound } from "../store/slices/gameSlice";
 import AdRewardModal from "../components/AdRewardModal";
+import { SoundEffects } from "../services/soundService";
 
 interface SlotSymbol {
   icon: string;
@@ -48,6 +49,16 @@ export default function SlotGame() {
     detail: string;
   } | null>(null);
   const [showAdModal, setShowAdModal] = useState(false);
+
+  // Otomatis putar iklan ketika kredit habis
+  useEffect(() => {
+    if (credits <= 0 && !isSpinning) {
+      const timer = setTimeout(() => {
+        setShowAdModal(true);
+      }, 700);
+      return () => clearTimeout(timer);
+    }
+  }, [credits, isSpinning]);
 
   // Animasi Reel
   const reel1Anim = useRef(new Animated.Value(0)).current;
@@ -179,11 +190,13 @@ export default function SlotGame() {
 
   const handleSpin = () => {
     if (credits <= 0) {
+      SoundEffects.playClick();
       setShowAdModal(true);
       return;
     }
 
     if (isSpinning) return;
+    SoundEffects.playClick();
 
     setIsSpinning(true);
     setLastResult(null);
@@ -191,8 +204,11 @@ export default function SlotGame() {
 
     const outcome = determineSlotOutcome();
 
-    // Acak tampilan sementara saat berputar
+    // Acak tampilan sementara saat berputar dan suara tick
+    let tickCount = 0;
     const interval = setInterval(() => {
+      tickCount++;
+      if (tickCount % 2 === 0) SoundEffects.playSpinTick();
       setReels([
         SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)].icon,
         SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)].icon,
@@ -202,12 +218,14 @@ export default function SlotGame() {
 
     // Reel 1 berhenti setelah 1.0 detik
     setTimeout(() => {
+      SoundEffects.playSpinTick();
       setReels((prev) => [outcome.finalReels[0], prev[1], prev[2]]);
       spinReel(reel1Anim, 300).start();
     }, 1000);
 
     // Reel 2 berhenti setelah 1.8 detik
     setTimeout(() => {
+      SoundEffects.playSpinTick();
       setReels((prev) => [outcome.finalReels[0], outcome.finalReels[1], prev[2]]);
       spinReel(reel2Anim, 300).start();
 
@@ -227,6 +245,15 @@ export default function SlotGame() {
       spinReel(reel3Anim, 400).start(() => {
         setIsSpinning(false);
         setLastResult(outcome);
+
+        // Suara hasil putaran
+        if (outcome.reward >= 10) {
+          SoundEffects.playJackpot();
+        } else if (outcome.winner) {
+          SoundEffects.playWin();
+        } else {
+          SoundEffects.playLoss();
+        }
 
         dispatch(
           playSlotRound({
@@ -405,17 +432,26 @@ export default function SlotGame() {
         <TouchableOpacity
           style={[
             styles.btnSpin,
-            (isSpinning || credits === 0) && styles.btnDisabled,
+            credits === 0
+              ? styles.btnTopUp
+              : isSpinning
+              ? styles.btnDisabled
+              : null,
           ]}
           onPress={handleSpin}
           disabled={isSpinning}
         >
-          <Text style={styles.btnSpinText}>
+          <Text
+            style={[
+              styles.btnSpinText,
+              credits === 0 && styles.btnTopUpText,
+            ]}
+          >
             {isSpinning
               ? "⚡ MESIN SEDANG BERPUTAR..."
               : credits > 0
               ? "🎰 PUTAR SLOT (-1 Kredit)"
-              : "+ Top Up Kredit (Habis)"}
+              : "+ Top Up Kredit (Tonton Iklan)"}
           </Text>
         </TouchableOpacity>
 
@@ -425,9 +461,9 @@ export default function SlotGame() {
             🧠 MITOS BOHONG: "POLA & JAM GACOR"
           </Text>
           <Text style={styles.educationText}>
-            1. **Tidak Pernah Ada Jam Gacor**: Mesin slot berjalan pada algoritma RNG (Random Number Generator) berbasis server. Jam berapa pun kamu bermain, rumus matematikanya sudah dikunci agar bandar selalu untung (house edge).
+            1. <Text style={styles.strongHighlight}>Tidak Pernah Ada Jam Gacor</Text>: Mesin slot berjalan pada algoritma RNG (Random Number Generator) berbasis server. Jam berapa pun kamu bermain, rumus matematikanya sudah dikunci agar bandar selalu untung (house edge).
             {"\n\n"}
-            2. **Ulah Affiliator**: Postingan di medsos tentang 'pola gacor jam 2 malam' adalah jebakan affiliator bandar untuk memancing korban baru agar mendaftar dengan link referral mereka dan menyetor uang deposit!
+            2. <Text style={styles.strongHighlight}>Ulah Affiliator</Text>: Postingan di medsos tentang 'pola gacor jam 2 malam' adalah jebakan affiliator bandar untuk memancing korban baru agar mendaftar dengan link referral mereka dan menyetor uang deposit!
           </Text>
         </View>
       </ScrollView>
@@ -674,6 +710,18 @@ const styles = StyleSheet.create({
     backgroundColor: "#42566E",
     shadowOpacity: 0,
   },
+  btnTopUp: {
+    backgroundColor: "#FFB300",
+    shadowColor: "#FFB300",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  btnTopUpText: {
+    color: "#0B121E",
+    fontWeight: "900",
+  },
   educationCard: {
     backgroundColor: "#141C2B",
     borderRadius: 16,
@@ -692,5 +740,10 @@ const styles = StyleSheet.create({
     color: "#CFDCEB",
     fontSize: 12,
     lineHeight: 18,
+  },
+  strongHighlight: {
+    color: "#FDE047",
+    fontWeight: "900",
+    textDecorationLine: "underline",
   },
 });

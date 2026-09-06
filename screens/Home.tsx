@@ -397,11 +397,11 @@ export default function Home() {
                 <Text style={styles.gameCardBadgeText}>SERVER SUDAH TAHU TARUHANMU</Text>
               </View>
               <View style={styles.gameCardContent}>
-                <Text style={styles.gameCardIcon}>✂️</Text>
+                <Text style={styles.gameCardIcon}>✌️</Text>
                 <View style={styles.gameCardInfo}>
                   <Text style={styles.gameCardTitle}>5. Suit Bandar Licik</Text>
                   <Text style={styles.gameCardDesc}>
-                    Batu • Gunting • Kertas. Buktikan bahwa server bandar sudah membaca pilihanmu sebelum mengocok kartu lawan!
+                    Batu (✊) • Gunting (✌️) • Kertas (✋). Buktikan bahwa server bandar sudah membaca pilihanmu sebelum mengocok kartu lawan!
                   </Text>
                   <View style={styles.gameCardFooter}>
                     <Text style={styles.gameCardCost}>Biaya: 1 Kredit (Menang +2)</Text>

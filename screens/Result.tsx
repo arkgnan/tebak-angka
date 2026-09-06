@@ -13,6 +13,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { useAppSelector } from "../hooks/useRedux";
 import ShareModal from "../components/ShareModal";
 import AdRewardModal from "../components/AdRewardModal";
+import { SoundEffects } from "../services/soundService";
 
 export default function Result() {
   const route = useRoute();
@@ -33,6 +34,13 @@ export default function Result() {
   const [showAdModal, setShowAdModal] = useState(false);
 
   useEffect(() => {
+    // Putar sound effect sesuai hasil menang/kalah
+    if (winner) {
+      SoundEffects.playWin();
+    } else {
+      SoundEffects.playLoss();
+    }
+
     const backAction = () => {
       navigate("Home");
       return true;
@@ -42,9 +50,10 @@ export default function Result() {
       backAction,
     );
     return () => backHandler.remove();
-  }, [navigate]);
+  }, [navigate, winner]);
 
   const handlePlayAgain = () => {
+    SoundEffects.playClick();
     if (credits <= 0) {
       setShowAdModal(true);
       return;

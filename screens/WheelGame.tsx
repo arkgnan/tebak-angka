@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import { StackNavigation } from "../App";
 import { useAppDispatch, useAppSelector } from "../hooks/useRedux";
 import { playWheelRound } from "../store/slices/gameSlice";
 import AdRewardModal from "../components/AdRewardModal";
+import { SoundEffects } from "../services/soundService";
 
 interface WheelSegment {
   id: number;
@@ -103,6 +104,16 @@ export default function WheelGame() {
   const [freeSpins, setFreeSpins] = useState(0);
   const [showAdModal, setShowAdModal] = useState(false);
 
+  // Otomatis putar iklan ketika kredit dan free spin habis
+  useEffect(() => {
+    if (credits <= 0 && freeSpins === 0 && !isSpinning) {
+      const timer = setTimeout(() => {
+        setShowAdModal(true);
+      }, 700);
+      return () => clearTimeout(timer);
+    }
+  }, [credits, freeSpins, isSpinning]);
+
   // Animasi Rotasi Roda
   const spinValue = useRef(new Animated.Value(0)).current;
   const currentRotation = useRef(0);
@@ -144,11 +155,13 @@ export default function WheelGame() {
     const isUsingFreeSpin = freeSpins > 0;
 
     if (credits <= 0 && !isUsingFreeSpin) {
+      SoundEffects.playClick();
       setShowAdModal(true);
       return;
     }
 
     if (isSpinning) return;
+    SoundEffects.playClick();
 
     if (isUsingFreeSpin) {
       setFreeSpins((prev) => Math.max(0, prev - 1));
@@ -157,6 +170,14 @@ export default function WheelGame() {
     setIsSpinning(true);
     setSelectedSegment(null);
     setIsNearMiss(false);
+
+    // Suara ratchet tick saat roda berputar
+    let tickCount = 0;
+    const tickInterval = setInterval(() => {
+      tickCount++;
+      SoundEffects.playSpinTick();
+      if (tickCount >= 16) clearInterval(tickInterval);
+    }, 220);
 
     const { targetIndex, nearMiss } = determineOutcome();
     const segmentAngle = 360 / SEGMENTS.length; // 45 derajat per segmen
@@ -186,6 +207,15 @@ export default function WheelGame() {
       const resultSegment = SEGMENTS[targetIndex];
       setSelectedSegment(resultSegment);
       setIsNearMiss(nearMiss);
+
+      // Suara hasil roda
+      if (resultSegment.isJackpot) {
+        SoundEffects.playJackpot();
+      } else if (resultSegment.rewardCredits > 0 || resultSegment.id === 7) {
+        SoundEffects.playWin();
+      } else {
+        SoundEffects.playLoss();
+      }
 
       // Jika mendarat di Free Spin (Index 7), tambahkan free spin token
       if (resultSegment.id === 7) {
@@ -358,7 +388,11 @@ export default function WheelGame() {
           style={[
             styles.btnSpin,
             freeSpins > 0 && { backgroundColor: "#FFA726", borderColor: "#FFB74D" },
-            (isSpinning || (credits === 0 && freeSpins === 0)) && styles.btnDisabled,
+            credits === 0 && freeSpins === 0
+              ? styles.btnTopUp
+              : isSpinning
+              ? styles.btnDisabled
+              : null,
           ]}
           onPress={handleSpin}
           disabled={isSpinning}
@@ -366,7 +400,7 @@ export default function WheelGame() {
           <Text
             style={[
               styles.btnSpinText,
-              freeSpins > 0 && { color: "#000000" },
+              (freeSpins > 0 || (credits === 0 && freeSpins === 0)) && styles.btnTopUpText,
             ]}
           >
             {isSpinning
@@ -375,7 +409,7 @@ export default function WheelGame() {
               ? `🎰 PUTAR GRATIS (${freeSpins} Free Spin Aktif)`
               : credits > 0
               ? "🎡 PUTAR RODA (-1 Kredit)"
-              : "+ Top Up Kredit (Habis)"}
+              : "+ Top Up Kredit (Tonton Iklan)"}
           </Text>
         </TouchableOpacity>
 
@@ -385,9 +419,9 @@ export default function WheelGame() {
             🧠 PSIKOLOGI EFEK 'NEAR-MISS' (NYARIS MENANG):
           </Text>
           <Text style={styles.educationText}>
-            Dalam psikologi perjudian, efek *Near-Miss* adalah ketika kamu kalah namun hasil visual berada tepat 1 milimeter di samping Jackpot.
+            Dalam psikologi perjudian, efek <Text style={styles.strongHighlight}>Near-Miss</Text> adalah ketika kamu kalah namun hasil visual berada tepat 1 milimeter di samping Jackpot.
             {"\n\n"}
-            Otak merespons *Near-Miss* sama persis seperti saat menang: membanjiri dopamin dan menipu alam bawah sadar seolah kemenangan sudah dekat, padahal roda sudah diatur bandar untuk selalu kalah!
+            Otak merespons <Text style={styles.strongHighlight}>Near-Miss</Text> sama persis seperti saat menang: membanjiri dopamin dan menipu alam bawah sadar seolah kemenangan sudah dekat, padahal roda sudah diatur bandar untuk selalu kalah!
           </Text>
         </View>
       </ScrollView>
@@ -592,6 +626,18 @@ const styles = StyleSheet.create({
     backgroundColor: "#42566E",
     shadowOpacity: 0,
   },
+  btnTopUp: {
+    backgroundColor: "#FFB300",
+    shadowColor: "#FFB300",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  btnTopUpText: {
+    color: "#0B121E",
+    fontWeight: "900",
+  },
   educationCard: {
     backgroundColor: "#141C2B",
     borderRadius: 16,
@@ -610,5 +656,10 @@ const styles = StyleSheet.create({
     color: "#CFDCEB",
     fontSize: 12,
     lineHeight: 18,
+  },
+  strongHighlight: {
+    color: "#FDE047",
+    fontWeight: "900",
+    textDecorationLine: "underline",
   },
 });

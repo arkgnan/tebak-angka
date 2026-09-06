@@ -45,5 +45,9 @@
       "bundleIdentifier": "com.arkgnan.tebakangka",
       "googleServicesFile": "./GoogleService-Info.plist"
     }
+  },
+  "react-native-google-mobile-ads": {
+    "android_app_id": "ca-app-pub-8703649064343703~7596623211",
+    "ios_app_id": "ca-app-pub-8703649064343703~7596623211"
   }
 }

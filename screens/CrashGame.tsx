@@ -13,6 +13,7 @@ import { StackNavigation } from "../App";
 import { useAppDispatch, useAppSelector } from "../hooks/useRedux";
 import { playCrashRound } from "../store/slices/gameSlice";
 import AdRewardModal from "../components/AdRewardModal";
+import { SoundEffects } from "../services/soundService";
 
 type GameStatus = "idle" | "flying" | "cashed_out" | "crashed";
 
@@ -29,6 +30,16 @@ export default function CrashGame() {
     1.12, 1.05, 2.45, 1.02, 1.88,
   ]);
   const [showAdModal, setShowAdModal] = useState(false);
+
+  // Otomatis putar iklan ketika kredit habis dan roket tidak sedang terbang
+  useEffect(() => {
+    if (credits <= 0 && status !== "flying") {
+      const timer = setTimeout(() => {
+        setShowAdModal(true);
+      }, 700);
+      return () => clearTimeout(timer);
+    }
+  }, [credits, status]);
 
   // Animasi Roket
   const rocketAnimY = useRef(new Animated.Value(0)).current;
@@ -86,10 +97,12 @@ export default function CrashGame() {
 
   const startFlight = () => {
     if (credits <= 0) {
+      SoundEffects.playClick();
       setShowAdModal(true);
       return;
     }
 
+    SoundEffects.playRocketThrust();
     const predeterminedCrash = calculateBandarCrashPoint();
     setCrashPoint(predeterminedCrash);
     setMultiplier(1.0);
@@ -123,6 +136,7 @@ export default function CrashGame() {
 
       if (currentMult >= predeterminedCrash) {
         // ROKET MELEDAK
+        SoundEffects.playExplosion();
         if (flightInterval.current) clearInterval(flightInterval.current);
         setMultiplier(predeterminedCrash);
         setStatus("crashed");
@@ -160,6 +174,7 @@ export default function CrashGame() {
   const handleCashOut = () => {
     if (status !== "flying") return;
 
+    SoundEffects.playWin();
     if (flightInterval.current) clearInterval(flightInterval.current);
     const finalEarned = multiplier;
     setEarnedMultiplier(finalEarned);
@@ -180,6 +195,7 @@ export default function CrashGame() {
   };
 
   const handleResetToIdle = () => {
+    SoundEffects.playClick();
     setStatus("idle");
     setMultiplier(1.0);
     rocketAnimY.setValue(0);
@@ -305,12 +321,19 @@ export default function CrashGame() {
             <TouchableOpacity
               style={[
                 styles.btnLaunch,
-                credits === 0 && styles.btnDisabled,
+                credits === 0 && styles.btnTopUp,
               ]}
               onPress={startFlight}
             >
-              <Text style={styles.btnLaunchText}>
-                🚀 LUNCURKAN ROKET (-1 Kredit)
+              <Text
+                style={[
+                  styles.btnLaunchText,
+                  credits === 0 && styles.btnTopUpText,
+                ]}
+              >
+                {credits > 0
+                  ? "🚀 LUNCURKAN ROKET (-1 Kredit)"
+                  : "+ Top Up Kredit (Tonton Iklan)"}
               </Text>
             </TouchableOpacity>
           )}
@@ -333,11 +356,21 @@ export default function CrashGame() {
 
           {(status === "crashed" || status === "cashed_out") && (
             <TouchableOpacity
-              style={styles.btnPlayAgain}
+              style={[
+                styles.btnPlayAgain,
+                credits === 0 && styles.btnTopUp,
+              ]}
               onPress={handleResetToIdle}
             >
-              <Text style={styles.btnPlayAgainText}>
-                {credits > 0 ? "Putaran Berikutnya →" : "+ Top Up Kredit"}
+              <Text
+                style={[
+                  styles.btnPlayAgainText,
+                  credits === 0 && styles.btnTopUpText,
+                ]}
+              >
+                {credits > 0
+                  ? "Putaran Berikutnya →"
+                  : "+ Top Up Kredit (Tonton Iklan)"}
               </Text>
             </TouchableOpacity>
           )}
@@ -349,9 +382,9 @@ export default function CrashGame() {
             🧠 BONGKAR TRIK GAME CRASH / AVIATOR:
           </Text>
           <Text style={styles.educationText}>
-            1. **Ilusi Kontrol**: Kamu merasa bisa mengendalikan kemenangan dengan menekan tombol tarik saldo, padahal bandar sudah menetapkan titik ledak (*crash point*) di server sejak tombol 'Luncurkan' diklik!
+            1. <Text style={styles.strongHighlight}>Ilusi Kontrol</Text>: Kamu merasa bisa mengendalikan kemenangan dengan menekan tombol tarik saldo, padahal bandar sudah menetapkan titik ledak (<Text style={styles.strongHighlight}>crash point</Text>) di server sejak tombol 'Luncurkan' diklik!
             {"\n\n"}
-            2. **Jebakan Keserakahan**: Bandar sengaja menaikkan angka secara perlahan untuk memancing rasa tamakmu. Saat kamu berniat menunggu ke 2.0x, roket sudah diatur meledak di 1.95x!
+            2. <Text style={styles.strongHighlight}>Jebakan Keserakahan</Text>: Bandar sengaja menaikkan angka secara perlahan untuk memancing rasa tamakmu. Saat kamu berniat menunggu ke 2.0x, roket sudah diatur meledak di 1.95x!
           </Text>
         </View>
       </ScrollView>
@@ -529,6 +562,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#42566E",
     shadowOpacity: 0,
   },
+  btnTopUp: {
+    backgroundColor: "#FFB300",
+    borderColor: "#FFB300",
+    shadowColor: "#FFB300",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  btnTopUpText: {
+    color: "#0B121E",
+    fontWeight: "900",
+  },
   btnCashout: {
     backgroundColor: "#00E676",
     paddingVertical: 16,
@@ -607,5 +653,10 @@ const styles = StyleSheet.create({
     color: "#94A3B8",
     fontSize: 11,
     fontWeight: "600",
+  },
+  strongHighlight: {
+    color: "#FDE047",
+    fontWeight: "900",
+    textDecorationLine: "underline",
   },
 });

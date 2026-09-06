@@ -1,6 +1,6 @@
 import { StatusBar } from "expo-status-bar";
-import { NavigationContainer, NavigationProp } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
+import { NavigationContainer, NavigationProp, DarkTheme } from "@react-navigation/native";
+import { createStackNavigator, CardStyleInterpolators } from "@react-navigation/stack";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { store, persistor } from "./store";
@@ -18,6 +18,7 @@ import SuitGame from "./screens/SuitGame";
 // melalui file google-services.json saat aplikasi pertama kali dijalankan.
 
 import { initializeMobileAds } from "./services/admobService";
+import { initAudio } from "./services/soundService";
 import { useAppSelector } from "./hooks/useRedux";
 
 export type RootStackParamList = {
@@ -40,17 +41,29 @@ export type RootStackParamList = {
 export type StackNavigation = NavigationProp<RootStackParamList>;
 const Stack = createStackNavigator<RootStackParamList>();
 
+const appNavTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    background: "#0B121E",
+    card: "#0B121E",
+  },
+};
+
 const MainApp = () => {
   const { user } = useAppSelector((state) => state.auth);
 
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={appNavTheme}>
       <StatusBar style="light" />
       <Stack.Navigator
         initialRouteName={user ? "Home" : "Login"}
         screenOptions={{
           headerShown: false,
           cardStyle: { backgroundColor: "#0B121E" },
+          cardStyleInterpolator: CardStyleInterpolators.forFadeFromCenter,
+          animationEnabled: true,
+          detachPreviousScreen: false,
         }}
       >
         <Stack.Screen name="Login" component={Login} />
@@ -60,7 +73,14 @@ const MainApp = () => {
         <Stack.Screen name="WheelGame" component={WheelGame} />
         <Stack.Screen name="SlotGame" component={SlotGame} />
         <Stack.Screen name="SuitGame" component={SuitGame} />
-        <Stack.Screen name="Result" component={Result} />
+        <Stack.Screen
+          name="Result"
+          component={Result}
+          options={{
+            cardStyleInterpolator: CardStyleInterpolators.forFadeFromCenter,
+            detachPreviousScreen: false,
+          }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
@@ -83,6 +103,9 @@ export default function App() {
 
     // Inisialisasi Mobile Ads secara aman (hanya di APK / EAS build, abaikan di Expo Go)
     initializeMobileAds();
+
+    // Inisialisasi dan preload efek suara
+    initAudio();
   }, []);
 
   return (

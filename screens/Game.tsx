@@ -11,6 +11,7 @@ import { useNavigation } from "@react-navigation/native";
 import { StackNavigation } from "../App";
 import { useAppDispatch, useAppSelector } from "../hooks/useRedux";
 import { playRound } from "../store/slices/gameSlice";
+import { SoundEffects } from "../services/soundService";
 import AnimatedButton from "../components/AnimatedButton";
 import AdRewardModal from "../components/AdRewardModal";
 
@@ -34,6 +35,7 @@ export default function Game() {
   }, [credits]);
 
   const handleChoice = (choice: "higher" | "lower") => {
+    SoundEffects.playClick();
     if (credits <= 0) {
       setShowAdModal(true);
       return;

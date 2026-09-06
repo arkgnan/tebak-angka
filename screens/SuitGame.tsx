@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -13,6 +13,7 @@ import { StackNavigation } from "../App";
 import { useAppDispatch, useAppSelector } from "../hooks/useRedux";
 import { playSuitRound } from "../store/slices/gameSlice";
 import AdRewardModal from "../components/AdRewardModal";
+import { SoundEffects } from "../services/soundService";
 
 type ChoiceType = "rock" | "paper" | "scissors";
 
@@ -28,21 +29,21 @@ const CHOICES: ChoiceOption[] = [
   {
     id: "rock",
     label: "Batu",
-    icon: "🪨",
+    icon: "✊",
     beats: "scissors",
     losesTo: "paper",
   },
   {
     id: "paper",
     label: "Kertas",
-    icon: "📄",
+    icon: "✋",
     beats: "rock",
     losesTo: "scissors",
   },
   {
     id: "scissors",
     label: "Gunting",
-    icon: "✂️",
+    icon: "✌️",
     beats: "paper",
     losesTo: "rock",
   },
@@ -57,6 +58,17 @@ export default function SuitGame() {
   const [bandarDisplay, setBandarDisplay] = useState<string>("❓");
   const [isPlaying, setIsPlaying] = useState(false);
   const [showAdModal, setShowAdModal] = useState(false);
+
+  // Otomatis putar iklan ketika kredit habis dan tidak sedang main
+  useEffect(() => {
+    if (credits <= 0 && !isPlaying) {
+      const timer = setTimeout(() => {
+        setShowAdModal(true);
+      }, 700);
+      return () => clearTimeout(timer);
+    }
+  }, [credits, isPlaying]);
+
   const [lastRoundResult, setLastRoundResult] = useState<{
     winner: boolean;
     isDraw: boolean;
@@ -130,11 +142,13 @@ export default function SuitGame() {
 
   const handlePlaySuit = () => {
     if (credits <= 0) {
+      SoundEffects.playClick();
       setShowAdModal(true);
       return;
     }
 
     if (isPlaying) return;
+    SoundEffects.playClash();
 
     setIsPlaying(true);
     setLastRoundResult(null);
@@ -142,11 +156,12 @@ export default function SuitGame() {
     const outcome = determineBandarOutcome(playerChoice);
 
     // Animasi kocok tangan selama 1.6 detik
-    const icons = ["🪨", "📄", "✂️"];
+    const icons = ["✊", "✋", "✌️"];
     let count = 0;
     const interval = setInterval(() => {
       setBandarDisplay(icons[count % 3]);
       count++;
+      if (count % 2 === 0) SoundEffects.playSpinTick();
     }, 100);
 
     Animated.parallel([
@@ -193,6 +208,15 @@ export default function SuitGame() {
       setIsPlaying(false);
       setLastRoundResult(outcome);
 
+      // Suara hasil pertarungan suit
+      if (outcome.winner) {
+        SoundEffects.playWin();
+      } else if (outcome.isDraw) {
+        SoundEffects.playClick();
+      } else {
+        SoundEffects.playLoss();
+      }
+
       dispatch(
         playSuitRound({
           playerChoice,
@@ -228,7 +252,7 @@ export default function SuitGame() {
 
         <Text style={styles.title}>SUIT BANDAR LICIK</Text>
         <Text style={styles.subtitle}>
-          Batu • Gunting • Kertas (Server Sudah Tahu Pilihanmu!)
+          Batu (✊) • Gunting (✌️) • Kertas (✋) - Server Sudah Tahu Pilihanmu!
         </Text>
 
         {/* Arena Adu Suit */}
@@ -320,7 +344,12 @@ export default function SuitGame() {
                   styles.choiceCard,
                   isSelected && styles.choiceCardActive,
                 ]}
-                onPress={() => !isPlaying && setPlayerChoice(item.id)}
+                onPress={() => {
+                  if (!isPlaying) {
+                    SoundEffects.playClick();
+                    setPlayerChoice(item.id);
+                  }
+                }}
                 disabled={isPlaying}
                 activeOpacity={0.7}
               >
@@ -347,17 +376,26 @@ export default function SuitGame() {
         <TouchableOpacity
           style={[
             styles.btnPlay,
-            (isPlaying || credits === 0) && styles.btnDisabled,
+            credits === 0
+              ? styles.btnTopUp
+              : isPlaying
+              ? styles.btnDisabled
+              : null,
           ]}
           onPress={handlePlaySuit}
           disabled={isPlaying}
         >
-          <Text style={styles.btnPlayText}>
+          <Text
+            style={[
+              styles.btnPlayText,
+              credits === 0 && styles.btnTopUpText,
+            ]}
+          >
             {isPlaying
               ? "⚡ MENGADU HASIL DI SERVER..."
               : credits > 0
               ? `⚔️ ADU SUIT (-1 Kredit)`
-              : "+ Top Up Kredit (Habis)"}
+              : "+ Top Up Kredit (Tonton Iklan)"}
           </Text>
         </TouchableOpacity>
 
@@ -367,9 +405,9 @@ export default function SuitGame() {
             🧠 BONGKAR TRIK: MENGAPA BANDAR SELALU MENANG?
           </Text>
           <Text style={styles.educationText}>
-            1. **Taruhan Terkirim Dulu**: Dalam judi online, pilihanmu dikirim ke server sebelum hasil dikeluarkan. Bandar sudah mengetahui apa yang kamu pasang, lalu algoritmanya mengeluarkan lawan yang pasti mengalahkanmu!
+            1. <Text style={styles.strongHighlight}>Taruhan Terkirim Dulu</Text>: Dalam judi online, pilihanmu dikirim ke server sebelum hasil dikeluarkan. Bandar sudah mengetahui apa yang kamu pasang, lalu algoritmanya mengeluarkan lawan yang pasti mengalahkanmu!
             {"\n\n"}
-            2. **Ilusi Peluang 50:50**: Di dunia nyata, suit memiliki peluang menang 33%. Namun di kasino online, peluang ini dipotong hingga di bawah 10% melalui manipulasi server.
+            2. <Text style={styles.strongHighlight}>Ilusi Peluang 50:50</Text>: Di dunia nyata, suit memiliki peluang menang 33%. Namun di kasino online, peluang ini dipotong hingga di bawah 10% melalui manipulasi server.
           </Text>
         </View>
       </ScrollView>
@@ -642,6 +680,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#42566E",
     shadowOpacity: 0,
   },
+  btnTopUp: {
+    backgroundColor: "#FFB300",
+    borderColor: "#FFB300",
+    shadowColor: "#FFB300",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  btnTopUpText: {
+    color: "#0B121E",
+    fontWeight: "900",
+  },
   educationCard: {
     backgroundColor: "#141C2B",
     borderRadius: 16,
@@ -660,5 +711,10 @@ const styles = StyleSheet.create({
     color: "#CFDCEB",
     fontSize: 12,
     lineHeight: 18,
+  },
+  strongHighlight: {
+    color: "#FDE047",
+    fontWeight: "900",
+    textDecorationLine: "underline",
   },
 });
