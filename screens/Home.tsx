@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -18,7 +18,10 @@ import { StackNavigation } from "../App";
 import { useAppDispatch, useAppSelector } from "../hooks/useRedux";
 import { signOut } from "../store/slices/authSlice";
 import { resetGameStats } from "../store/slices/gameSlice";
-import { showExitInterstitialAd } from "../services/admobService";
+import {
+  showExitInterstitialAd,
+  preloadExitInterstitialAd,
+} from "../services/admobService";
 import StatCard from "../components/StatCard";
 import AdRewardModal from "../components/AdRewardModal";
 import EducationModal from "../components/EducationModal";
@@ -58,8 +61,13 @@ export default function Home() {
   const horizontalScrollRef = useRef<ScrollView>(null);
   const lastBackPressTime = useRef<number>(0);
 
+  // Pre-load iklan keluar segera saat halaman utama terbuka
+  useEffect(() => {
+    preloadExitInterstitialAd();
+  }, []);
+
   // Tangani tombol Back hardware Android:
-  // 1x tekan -> Munculkan Toast "Tekan sekali lagi untuk keluar"
+  // 1x tekan -> Munculkan Toast "Tekan sekali lagi untuk keluar" & pastikan iklan ter-preload
   // 2x tekan berturut-turut (< 2 detik) -> Tampilkan Iklan Interstitial (tanpa reward), lalu keluar aplikasi
   useFocusEffect(
     React.useCallback(() => {
@@ -74,6 +82,7 @@ export default function Home() {
         }
 
         lastBackPressTime.current = now;
+        preloadExitInterstitialAd();
         ToastAndroid.show("Tekan sekali lagi untuk keluar", ToastAndroid.SHORT);
         return true; // Cegah navigasi kembali ke layar Login
       };
