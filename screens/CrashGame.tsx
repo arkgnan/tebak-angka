@@ -60,18 +60,27 @@ export default function CrashGame() {
     };
   }, []);
 
+  const getRewardCredits = (mult: number): number => {
+    if (mult >= 2.0) return 3; // Untung +2
+    if (mult >= 1.2) return 2; // Untung +1
+    return 1; // Balik modal (Untung 0)
+  };
+
   const calculateBandarCrashPoint = (): number => {
-    // ALGORITMA BANDAR CRASH (HOUSE EDGE):
-    // 35% ledakan instan sangat rendah (1.01x - 1.15x)
-    // 45% ledakan rendah-menengah (1.16x - 1.95x)
-    // 20% umpan tinggi sesekali (2.00x - 4.50x)
+    // ALGORITMA BANDAR CRASH (PELUANG MENANG SANGAT KECIL):
+    // 55% meledak instan sangat rendah (1.01x - 1.15x)
+    // 30% meledak rendah (1.16x - 1.39x)
+    // 10% meledak menengah (1.40x - 1.95x)
+    // 5% umpan tinggi langka (2.00x - 3.50x)
     const roll = Math.random();
-    if (roll < 0.35) {
+    if (roll < 0.55) {
       return +(1.01 + Math.random() * 0.14).toFixed(2);
-    } else if (roll < 0.8) {
-      return +(1.16 + Math.random() * 0.79).toFixed(2);
+    } else if (roll < 0.85) {
+      return +(1.16 + Math.random() * 0.23).toFixed(2);
+    } else if (roll < 0.95) {
+      return +(1.40 + Math.random() * 0.55).toFixed(2);
     } else {
-      return +(2.0 + Math.random() * 2.5).toFixed(2);
+      return +(2.0 + Math.random() * 1.5).toFixed(2);
     }
   };
 
@@ -158,11 +167,14 @@ export default function CrashGame() {
 
     setRecentCrashes((prev) => [finalEarned, ...prev.slice(0, 5)]);
 
+    const reward = getRewardCredits(finalEarned);
+
     dispatch(
       playCrashRound({
         cashedOut: true,
         multiplier: finalEarned,
         crashPoint: crashPoint,
+        rewardCredits: reward,
       }),
     );
   };
@@ -246,12 +258,13 @@ export default function CrashGame() {
 
           {/* Subtext Status */}
           <Text style={styles.statusSubtext}>
-            {status === "idle" && "Tekan 'Luncurkan' untuk memulai ronde"}
-            {status === "flying" && "Tarik saldo sebelum roket meledak!"}
+            {status === "idle" && "Taruhan 1 Kredit • Tarik saldo sebelum roket meledak!"}
+            {status === "flying" &&
+              `Sedang terbang! Tarik sekarang untuk mengamankan kredit.`}
             {status === "cashed_out" &&
-              `🎉 AMBIL UNTUNG! Menang ${earnedMultiplier.toFixed(2)}x`}
+              `🎉 AMBIL UNTUNG! Berhasil tarik di ${earnedMultiplier.toFixed(2)}x (+${getRewardCredits(earnedMultiplier)} Kredit)`}
             {status === "crashed" &&
-              `💀 MELEDAK DI ${crashPoint.toFixed(2)}x (RUNGKAD)`}
+              `💀 MELEDAK DI ${crashPoint.toFixed(2)}x! Saldo hangus -1 Kredit.`}
           </Text>
 
           {/* Animasi Ikon Roket */}
@@ -270,6 +283,20 @@ export default function CrashGame() {
               {status === "crashed" ? "💥" : status === "cashed_out" ? "💰" : "🚀"}
             </Text>
           </Animated.View>
+        </View>
+
+        {/* Tabel Skema Hadiah Roket */}
+        <View style={styles.payoutCard}>
+          <Text style={styles.payoutTitle}>📊 SKEMA HADIAH ROKET (TARUHAN 1 KREDIT):</Text>
+          <View style={styles.payoutRow}>
+            <Text style={styles.payoutCol}>• 1.00x - 1.19x : Balik Modal (+1 Kredit)</Text>
+          </View>
+          <View style={styles.payoutRow}>
+            <Text style={styles.payoutCol}>• 1.20x - 1.99x : Untung +1 Kredit (+2 Kredit Masuk)</Text>
+          </View>
+          <View style={styles.payoutRow}>
+            <Text style={styles.payoutCol}>• 2.00x ke atas : Untung +2 Kredit (+3 Kredit Masuk)</Text>
+          </View>
         </View>
 
         {/* Tombol Aksi Utama */}
@@ -293,9 +320,13 @@ export default function CrashGame() {
               style={styles.btnCashout}
               onPress={handleCashOut}
             >
-              <Text style={styles.btnCashoutLabel}>TARIK SALDO SEKARANG</Text>
+              <Text style={styles.btnCashoutLabel}>
+                TARIK SEKARANG: +{getRewardCredits(multiplier)} KREDIT
+              </Text>
               <Text style={styles.btnCashoutValue}>
-                +{(multiplier).toFixed(2)} Kredit
+                {getRewardCredits(multiplier) > 1
+                  ? `Untung Bersih: +${getRewardCredits(multiplier) - 1} Kredit (${multiplier.toFixed(2)}x)`
+                  : `Balik Modal (${multiplier.toFixed(2)}x)`}
               </Text>
             </TouchableOpacity>
           )}
@@ -552,5 +583,29 @@ const styles = StyleSheet.create({
     color: "#CFDCEB",
     fontSize: 12,
     lineHeight: 18,
+  },
+  payoutCard: {
+    backgroundColor: "rgba(15, 23, 42, 0.75)",
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 14,
+    width: "100%",
+    borderWidth: 1,
+    borderColor: "#1E293B",
+  },
+  payoutTitle: {
+    color: "#38BDF8",
+    fontSize: 11,
+    fontWeight: "800",
+    marginBottom: 6,
+    letterSpacing: 0.5,
+  },
+  payoutRow: {
+    marginVertical: 2,
+  },
+  payoutCol: {
+    color: "#94A3B8",
+    fontSize: 11,
+    fontWeight: "600",
   },
 });

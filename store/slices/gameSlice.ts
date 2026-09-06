@@ -1,16 +1,19 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface GameRoundResult {
-  gameType?: "higher-lower" | "crash" | "wheel";
+  gameType?: "higher-lower" | "crash" | "wheel" | "slot" | "suit";
   gameTitle?: string;
   winner: boolean;
   baseNumber?: number;
   resultNumber?: number;
   choice?: "higher" | "lower";
+  playerChoice?: "rock" | "paper" | "scissors";
+  bandarChoice?: "rock" | "paper" | "scissors";
   multiplier?: number;
   crashPoint?: number;
   rewardCredits?: number;
   segmentTitle?: string;
+  reels?: [string, string, string];
   explanation: string;
   consecutiveLosses: number;
   timestamp: number;
@@ -103,6 +106,8 @@ const gameSlice = createSlice({
       let resultNumber: number;
       if (winner) {
         state.stats.totalWins += 1;
+        // User menang: berikan +2 kredit (setelah dikurangi 1 di awal, untung bersih = +1 kredit)
+        state.credits += 2;
         if (choice === "higher") {
           const min = baseNumber + 1;
           const max = Math.min(99, baseNumber + 20);
@@ -129,6 +134,7 @@ const gameSlice = createSlice({
         gameType: "higher-lower",
         gameTitle: "Tebak Angka",
         winner,
+        rewardCredits: winner ? 2 : 0,
         baseNumber,
         resultNumber,
         choice,
@@ -138,7 +144,7 @@ const gameSlice = createSlice({
       };
 
       state.lastRound = roundResult;
-      state.history = [roundResult, ...state.history.slice(0, 19)];
+      state.history = [roundResult, ...state.history.slice(0, 49)];
     },
 
     playCrashRound: (
@@ -147,6 +153,7 @@ const gameSlice = createSlice({
         cashedOut: boolean;
         multiplier: number;
         crashPoint: number;
+        rewardCredits?: number;
       }>,
     ) => {
       if (state.credits <= 0) return;
@@ -157,14 +164,21 @@ const gameSlice = createSlice({
       state.stats.simulatedMoneyLost += 50000;
 
       let explanation = "";
+      let rewardCredits = 0;
       if (cashedOut) {
         // Menang cashout sebelum ledakan
-        const profit = Math.max(1, Math.round(multiplier));
-        state.credits = state.credits - 1 + profit;
+        // Multiplier >= 2.0x -> 3 kredit (untung +2)
+        // Multiplier >= 1.2x -> 2 kredit (untung +1)
+        // Multiplier < 1.2x -> 1 kredit (balik modal)
+        rewardCredits =
+          action.payload.rewardCredits ??
+          (multiplier >= 2.0 ? 3 : multiplier >= 1.2 ? 2 : 1);
+        state.credits = state.credits - 1 + rewardCredits;
         state.stats.totalWins += 1;
         state.lastWon = true;
         state.consecutiveLosses = 0;
-        explanation = `Berhasil Tarik di ${multiplier.toFixed(2)}x (Roket meledak di ${crashPoint.toFixed(2)}x)! Bandar sengaja meloloskanmu sekali untuk memancing taruhan lebih besar di putaran berikutnya!`;
+        const profit = rewardCredits - 1;
+        explanation = `Berhasil Tarik di ${multiplier.toFixed(2)}x (Roket meledak di ${crashPoint.toFixed(2)}x)! Dapat +${rewardCredits} Kredit (Untung +${profit} Kredit). Bandar sengaja meloloskanmu sekali untuk memancing taruhan lebih besar di putaran berikutnya!`;
       } else {
         // Kalah / meledak
         state.credits -= 1;
@@ -180,13 +194,14 @@ const gameSlice = createSlice({
         winner: cashedOut,
         multiplier,
         crashPoint,
+        rewardCredits,
         explanation,
         consecutiveLosses: state.consecutiveLosses,
         timestamp: Date.now(),
       };
 
       state.lastRound = roundResult;
-      state.history = [roundResult, ...state.history.slice(0, 19)];
+      state.history = [roundResult, ...state.history.slice(0, 49)];
     },
 
     playWheelRound: (
@@ -196,15 +211,26 @@ const gameSlice = createSlice({
         rewardCredits: number;
         winner: boolean;
         isNearMiss: boolean;
+        isFreeSpin?: boolean;
         explanation: string;
       }>,
     ) => {
-      if (state.credits <= 0) return;
+      const {
+        segmentTitle,
+        rewardCredits,
+        winner,
+        isFreeSpin,
+        explanation,
+      } = action.payload;
 
-      const { segmentTitle, rewardCredits, winner, explanation } = action.payload;
+      if (state.credits <= 0 && !isFreeSpin) return;
 
-      // Taruhan 1 kredit
-      state.credits = Math.max(0, state.credits - 1 + rewardCredits);
+      // Taruhan 1 kredit jika bukan free spin
+      if (isFreeSpin) {
+        state.credits += rewardCredits;
+      } else {
+        state.credits = Math.max(0, state.credits - 1 + rewardCredits);
+      }
       state.stats.totalPlayed += 1;
       state.stats.simulatedMoneyLost += 50000;
 
@@ -230,7 +256,104 @@ const gameSlice = createSlice({
       };
 
       state.lastRound = roundResult;
-      state.history = [roundResult, ...state.history.slice(0, 19)];
+      state.history = [roundResult, ...state.history.slice(0, 49)];
+    },
+
+    playSlotRound: (
+      state,
+      action: PayloadAction<{
+        reels: [string, string, string];
+        rewardCredits: number;
+        winner: boolean;
+        isNearMiss: boolean;
+        explanation: string;
+      }>,
+    ) => {
+      if (state.credits <= 0) return;
+
+      const { reels, rewardCredits, winner, explanation } = action.payload;
+
+      // Taruhan 1 kredit
+      state.credits = Math.max(0, state.credits - 1 + rewardCredits);
+      state.stats.totalPlayed += 1;
+      state.stats.simulatedMoneyLost += 50000;
+
+      if (winner) {
+        state.stats.totalWins += 1;
+        state.lastWon = true;
+        state.consecutiveLosses = 0;
+      } else {
+        state.stats.totalLosses += 1;
+        state.lastWon = false;
+        state.consecutiveLosses += 1;
+      }
+
+      const roundResult: GameRoundResult = {
+        gameType: "slot",
+        gameTitle: "Slot Rungkad 777",
+        winner,
+        rewardCredits,
+        reels,
+        explanation,
+        consecutiveLosses: state.consecutiveLosses,
+        timestamp: Date.now(),
+      };
+
+      state.lastRound = roundResult;
+      state.history = [roundResult, ...state.history.slice(0, 49)];
+    },
+
+    playSuitRound: (
+      state,
+      action: PayloadAction<{
+        playerChoice: "rock" | "paper" | "scissors";
+        bandarChoice: "rock" | "paper" | "scissors";
+        winner: boolean;
+        isDraw: boolean;
+        rewardCredits: number;
+        explanation: string;
+      }>,
+    ) => {
+      if (state.credits <= 0) return;
+
+      const {
+        playerChoice,
+        bandarChoice,
+        winner,
+        isDraw,
+        rewardCredits,
+        explanation,
+      } = action.payload;
+
+      // Taruhan 1 kredit
+      state.credits = Math.max(0, state.credits - 1 + rewardCredits);
+      state.stats.totalPlayed += 1;
+      state.stats.simulatedMoneyLost += 50000;
+
+      if (winner) {
+        state.stats.totalWins += 1;
+        state.lastWon = true;
+        state.consecutiveLosses = 0;
+      } else if (!isDraw) {
+        state.stats.totalLosses += 1;
+        state.lastWon = false;
+        state.consecutiveLosses += 1;
+      }
+
+      const roundResult: GameRoundResult = {
+        gameType: "suit",
+        gameTitle: "Suit Bandar Licik",
+        winner,
+        rewardCredits,
+        playerChoice,
+        bandarChoice,
+        explanation,
+        consecutiveLosses: state.consecutiveLosses,
+        timestamp: Date.now(),
+      };
+
+      state.lastRound = roundResult;
+      state.history = [roundResult, ...state.history.slice(0, 49)];
     },
 
     watchAdReward: (state) => {
@@ -260,6 +383,8 @@ export const {
   playRound,
   playCrashRound,
   playWheelRound,
+  playSlotRound,
+  playSuitRound,
   watchAdReward,
   resetGameStats,
 } = gameSlice.actions;

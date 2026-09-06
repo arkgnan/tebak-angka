@@ -13,15 +13,18 @@ import { useAppDispatch, useAppSelector } from "../hooks/useRedux";
 import { googleSignIn, clearError } from "../store/slices/authSlice";
 
 export default function Login() {
-  const { navigate } = useNavigation<StackNavigation>();
+  const navigation = useNavigation<StackNavigation>();
   const dispatch = useAppDispatch();
   const { user, loading, error } = useAppSelector((state) => state.auth);
 
   useEffect(() => {
     if (user) {
-      navigate("Home");
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Home" }],
+      });
     }
-  }, [user, navigate]);
+  }, [user, navigation]);
 
   const handleGoogleSignIn = () => {
     dispatch(clearError());

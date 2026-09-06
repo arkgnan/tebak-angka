@@ -100,6 +100,7 @@ export default function WheelGame() {
   const [isSpinning, setIsSpinning] = useState(false);
   const [selectedSegment, setSelectedSegment] = useState<WheelSegment | null>(null);
   const [isNearMiss, setIsNearMiss] = useState(false);
+  const [freeSpins, setFreeSpins] = useState(0);
   const [showAdModal, setShowAdModal] = useState(false);
 
   // Animasi Rotasi Roda
@@ -107,32 +108,51 @@ export default function WheelGame() {
   const currentRotation = useRef(0);
 
   const determineOutcome = (): { targetIndex: number; nearMiss: boolean } => {
-    // ALGORITMA BANDAR NEAR-MISS (ILUSI NYARIS JACKPOT):
-    // Jika sudah kalah 3x beruntun -> berikan umpan menang kecil (index 1 / +2 Kredit)
-    if (consecutiveLosses >= 3) {
-      return { targetIndex: 1, nearMiss: false };
-    }
-
-    // 60% waktu: Rekayasa efek NEAR-MISS (berhenti di index 2 atau 4, tepat 1 kotak di samping Jackpot index 3)
+    // PELUANG SANGAT KECIL (SIMULASI HOUSE EDGE JUDI ONLINE):
+    // 0.5% Jackpot x10 (Index 3)
+    // 3.0% Menang +2 Kredit (Index 1)
+    // 5.5% Balik Modal +1 Kredit (Index 5)
+    // 4.0% Free Spin (Index 7)
+    // 52.0% Efek 'Near-Miss' nyaris Jackpot (Index 2: Boncos atau Index 4: Zonk Lagi)
+    // 35.0% Zonk Rungkad / Habis Depo (Index 0: Rungkad atau Index 6: Habis Depo)
     const roll = Math.random();
-    if (roll < 0.6) {
+
+    if (roll < 0.005) {
+      // 0.5% Jackpot x10
+      return { targetIndex: 3, nearMiss: false };
+    } else if (roll < 0.035) {
+      // 3.0% Menang +2 Kredit
+      return { targetIndex: 1, nearMiss: false };
+    } else if (roll < 0.09) {
+      // 5.5% Balik Modal +1 Kredit
+      return { targetIndex: 5, nearMiss: false };
+    } else if (roll < 0.13) {
+      // 4.0% Free Spin
+      return { targetIndex: 7, nearMiss: false };
+    } else if (roll < 0.65) {
+      // 52% Efek Near-Miss di sebelah Jackpot (index 2 atau 4)
       const nearMissIndex = Math.random() < 0.5 ? 2 : 4;
       return { targetIndex: nearMissIndex, nearMiss: true };
     } else {
-      // 40% waktu zonk acak lain
-      const otherZonks = [0, 6, 7];
-      const targetIndex = otherZonks[Math.floor(Math.random() * otherZonks.length)];
-      return { targetIndex, nearMiss: false };
+      // 35% Zonk Rungkad atau Habis Depo
+      const zonkIndex = Math.random() < 0.5 ? 0 : 6;
+      return { targetIndex: zonkIndex, nearMiss: false };
     }
   };
 
   const handleSpin = () => {
-    if (credits <= 0) {
+    const isUsingFreeSpin = freeSpins > 0;
+
+    if (credits <= 0 && !isUsingFreeSpin) {
       setShowAdModal(true);
       return;
     }
 
     if (isSpinning) return;
+
+    if (isUsingFreeSpin) {
+      setFreeSpins((prev) => Math.max(0, prev - 1));
+    }
 
     setIsSpinning(true);
     setSelectedSegment(null);
@@ -141,30 +161,52 @@ export default function WheelGame() {
     const { targetIndex, nearMiss } = determineOutcome();
     const segmentAngle = 360 / SEGMENTS.length; // 45 derajat per segmen
 
-    // Hitung putaran penuh (5 sampai 8 putaran) + offset ke segmen tujuan
-    const extraRounds = 5;
-    const targetAngle = 360 - targetIndex * segmentAngle;
-    const totalRotation = currentRotation.current + extraRounds * 360 + targetAngle;
+    // Rumus presisi agar segmen targetIndex berhenti tepat di bawah jarum (posisi 0 derajat / atas):
+    // Setiap segmen berada di sudut (targetIndex * segmentAngle).
+    // Agar segmen berada di jarum atas, rotasi kumulatif modulo 360 harus (360 - targetIndex * segmentAngle) % 360.
+    const targetAngleMod = (360 - targetIndex * segmentAngle) % 360;
+    const currentAngleMod = currentRotation.current % 360;
+    let delta = targetAngleMod - currentAngleMod;
+    if (delta <= 0) {
+      delta += 360;
+    }
+
+    const extraRounds = 5; // Minimal 5 putaran penuh agar visual dramatis
+    const nextTotalRotation =
+      currentRotation.current + delta + extraRounds * 360;
 
     Animated.timing(spinValue, {
-      toValue: totalRotation,
+      toValue: nextTotalRotation,
       duration: 4000,
       easing: Easing.bezier(0.2, 0.8, 0.25, 1),
       useNativeDriver: true,
     }).start(() => {
       setIsSpinning(false);
-      currentRotation.current = totalRotation % 360;
+      currentRotation.current = nextTotalRotation;
       const resultSegment = SEGMENTS[targetIndex];
       setSelectedSegment(resultSegment);
       setIsNearMiss(nearMiss);
+
+      // Jika mendarat di Free Spin (Index 7), tambahkan free spin token
+      if (resultSegment.id === 7) {
+        setFreeSpins((prev) => prev + 1);
+      }
 
       let explanation = "";
       if (nearMiss) {
         explanation =
           "Efek 'Near-Miss' (Nyaris Menang)! Bandar sengaja menghentikan roda tepat 1 kotak di samping JACKPOT x10 agar kamu merasa 'sedikit lagi dapat' dan terus memutar!";
+      } else if (resultSegment.id === 7) {
+        explanation =
+          "Dapat Free Spin! Trik bandar memberi putaran gratis agar pemain tidak menutup aplikasi dan merasa penasaran untuk lanjut bertaruh.";
+      } else if (resultSegment.isJackpot) {
+        explanation =
+          "JACKPOT x10! Peluang ini hanya 0.5% di dunia nyata. Bandar hanya memberi kemenangan ini pada 1 dari ribuan putaran agar dijadikan bahan promosi!";
       } else if (resultSegment.rewardCredits > 0) {
         explanation =
-          "Umpan Kemenangan Kecil! Bandar memberimu kemenangan kecil agar kamu bertahan dan terdorong menaikkan taruhan.";
+          resultSegment.rewardCredits === 2
+            ? "Menang +2 Kredit! Umpan kemenangan kecil untuk menumbuhkan rasa percaya diri palsu."
+            : "Balik Modal +1 Kredit! Saldo tidak bertambah, bandar mengulur waktu agar kamu lelah dan terus bermain.";
       } else {
         explanation =
           "Zonk! Mesin putar judol selalu diprogram dengan house edge besar sehingga peluang kekalahan pemain mencapai lebih dari 90%.";
@@ -174,8 +216,9 @@ export default function WheelGame() {
         playWheelRound({
           segmentTitle: resultSegment.label,
           rewardCredits: resultSegment.rewardCredits,
-          winner: resultSegment.rewardCredits > 0,
+          winner: resultSegment.rewardCredits > 0 || resultSegment.id === 7,
           isNearMiss: nearMiss,
+          isFreeSpin: isUsingFreeSpin,
           explanation,
         }),
       );
@@ -199,9 +242,17 @@ export default function WheelGame() {
             <Text style={styles.backBtnText}>← Kembali</Text>
           </TouchableOpacity>
 
-          <View style={styles.creditBadge}>
-            <Text style={styles.creditBadgeLabel}>KREDIT: </Text>
-            <Text style={styles.creditBadgeValue}>{credits}</Text>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            {freeSpins > 0 && (
+              <View style={[styles.creditBadge, { backgroundColor: "rgba(255, 167, 38, 0.15)", borderColor: "#FFA726" }]}>
+                <Text style={[styles.creditBadgeLabel, { color: "#FFA726" }]}>FREE: </Text>
+                <Text style={[styles.creditBadgeValue, { color: "#FFA726" }]}>{freeSpins}x</Text>
+              </View>
+            )}
+            <View style={styles.creditBadge}>
+              <Text style={styles.creditBadgeLabel}>KREDIT: </Text>
+              <Text style={styles.creditBadgeValue}>{credits}</Text>
+            </View>
           </View>
         </View>
 
@@ -267,25 +318,36 @@ export default function WheelGame() {
           <View
             style={[
               styles.resultBox,
-              selectedSegment.rewardCredits > 0
+              selectedSegment.id === 7
+                ? { backgroundColor: "rgba(255, 167, 38, 0.12)", borderColor: "#FFA726" }
+                : selectedSegment.rewardCredits > 0
                 ? styles.resultWon
                 : isNearMiss
                 ? styles.resultNearMiss
                 : styles.resultLoss,
             ]}
           >
-            <Text style={styles.resultTitle}>
-              {selectedSegment.rewardCredits > 0
+            <Text
+              style={[
+                styles.resultTitle,
+                selectedSegment.id === 7 && { color: "#FFA726" },
+              ]}
+            >
+              {selectedSegment.id === 7
+                ? "🎰 BONUS: 1x FREE SPIN GRATIS!"
+                : selectedSegment.rewardCredits > 0
                 ? `🎉 MENANG: ${selectedSegment.label} (+${selectedSegment.rewardCredits} Kredit)`
                 : isNearMiss
                 ? "😱 NYARIS JACKPOT! (Zonk)"
                 : `💀 HASIL: ${selectedSegment.label} (Zonk)`}
             </Text>
             <Text style={styles.resultDetail}>
-              {isNearMiss
+              {selectedSegment.id === 7
+                ? "Kamu mendapatkan 1x Putaran Gratis! Saldo kreditmu tidak dipotong pada putaran selanjutnya."
+                : isNearMiss
                 ? "Jarum berhenti tepat di samping JACKPOT x10! Inilah trik visual bandar untuk memancingmu terus deposit."
                 : selectedSegment.rewardCredits > 0
-                ? "Bandar memberimu umpan menang agar tidak berhenti bermain."
+                ? "Bandar memberimu umpan kemenangan agar tidak berhenti bermain."
                 : "Saldo berkurang 1 kredit. Bandar mengunci keuntungan!"}
             </Text>
           </View>
@@ -295,14 +357,22 @@ export default function WheelGame() {
         <TouchableOpacity
           style={[
             styles.btnSpin,
-            (isSpinning || credits === 0) && styles.btnDisabled,
+            freeSpins > 0 && { backgroundColor: "#FFA726", borderColor: "#FFB74D" },
+            (isSpinning || (credits === 0 && freeSpins === 0)) && styles.btnDisabled,
           ]}
           onPress={handleSpin}
           disabled={isSpinning}
         >
-          <Text style={styles.btnSpinText}>
+          <Text
+            style={[
+              styles.btnSpinText,
+              freeSpins > 0 && { color: "#000000" },
+            ]}
+          >
             {isSpinning
               ? "⏳ RODA SEDANG BERPUTAR..."
+              : freeSpins > 0
+              ? `🎰 PUTAR GRATIS (${freeSpins} Free Spin Aktif)`
               : credits > 0
               ? "🎡 PUTAR RODA (-1 Kredit)"
               : "+ Top Up Kredit (Habis)"}
