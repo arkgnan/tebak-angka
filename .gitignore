@@ -17,6 +17,7 @@ android/local.properties
 android/*.iml
 android/app/*.iml
 android/.idea/
+android/app/build/outputs
 
 # Keystores (keep debug.keystore for team development, ignore release/production keys)
 *.jks
