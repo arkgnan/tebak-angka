@@ -24,6 +24,19 @@ import AdRewardModal from "../components/AdRewardModal";
 import EducationModal from "../components/EducationModal";
 import ShareModal from "../components/ShareModal";
 
+const SCIENTIFIC_FACTS = [
+  "Pemain tidak pernah bisa menang melawan algoritma bandar.",
+  "Algoritma judi online dirancang agar pemain 100% bangkrut dalam jangka panjang. Coba semua 5 permainan untuk membuktikannya!",
+  "Kemenangan di awal hanyalah umpan psikologis bandar agar hormon dopaminmu meledak dan kamu kecanduan deposit.",
+  "Mitos 'jam gacor' dan 'pola spin' hanyalah tipuan affiliator untuk menjebak korban baru mendaftar.",
+  "Secara matematis, Return to Player (RTP) selalu diatur menguntungkan bandar. Makin lama bermain, peluang bangkrut mendekati 100%.",
+  "Efek Near-Miss (nyaris menang) sengaja diciptakan untuk menipu otakmu seolah kemenangan sudah dekat, padahal sudah diatur kalah.",
+  "Di server judi online, taruhanmu sudah tercatat sebelum hasil diacak—bandar selalu tahu pilihanmu terlebih dahulu.",
+  "Uang yang hilang di judi online tidak akan pernah kembali; mengejar kekalahan (chasing losses) adalah pintu utama jeratan pinjol.",
+  "Sistem crash game memanipulasi emosi FOMO (takut ketinggalan untung), padahal titik ledakan roket sudah dipatok bandar sejak detik pertama.",
+  "Satu-satunya cara pasti untuk mengalahkan bandar judi online adalah dengan tidak pernah memainkannya sama sekali.",
+];
+
 export default function Home() {
   const { width: SCREEN_WIDTH } = useWindowDimensions();
   const navigation = useNavigation<StackNavigation>();
@@ -33,6 +46,9 @@ export default function Home() {
   const { user } = useAppSelector((state) => state.auth);
   const { credits, stats, history } = useAppSelector((state) => state.game);
 
+  const [randomFact] = useState<string>(
+    () => SCIENTIFIC_FACTS[Math.floor(Math.random() * SCIENTIFIC_FACTS.length)]
+  );
   const [activeTab, setActiveTab] = useState<number>(0); // 0: Game, 1: Statistik
   const [showAdModal, setShowAdModal] = useState(false);
   const [showEduModal, setShowEduModal] = useState(false);
@@ -216,7 +232,7 @@ export default function Home() {
                 <Text style={styles.bannerBadgeText}>FAKTA ILMIAH</Text>
               </View>
               <Text style={styles.bannerText}>
-                Algoritma judi online dirancang agar pemain 100% bangkrut dalam jangka panjang. Coba semua 5 permainan untuk membuktikannya!
+                {randomFact}
               </Text>
               <Text style={styles.bannerCta}>Bongkar Trik Bandar Selengkapnya →</Text>
             </TouchableOpacity>
