@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tebak Angka - Kebijakan Privasi & Syarat Ketentuan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --accent: #f59e0b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --badge-bg: rgba(99, 102, 241, 0.15);
+      --badge-border: rgba(99, 102, 241, 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.1) 0px, transparent 50%);
+    }
+
+    header {
+      border-bottom: 1px solid var(--card-border);
+      backdrop-filter: blur(12px);
+      background: rgba(15, 23, 42, 0.8);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .header-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: var(--text-main);
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .nav-tabs {
+      display: flex;
+      background: rgba(30, 41, 59, 0.8);
+      padding: 0.25rem;
+      border-radius: 9999px;
+      border: 1px solid var(--card-border);
+    }
+
+    .tab-btn {
+      padding: 0.5rem 1.25rem;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border-radius: 9999px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+    }
+
+    .tab-btn.active, .tab-btn:hover {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+    }
+
+    main {
+      max-width: 900px;
+      margin: 2.5rem auto;
+      padding: 0 1.5rem;
+      flex: 1;
+      width: 100%;
+    }
+
+    .hero-banner {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -20%;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      background: var(--badge-bg);
+      border: 1px solid var(--badge-border);
+      color: #818cf8;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.75rem;
+    }
+
+    .hero-banner h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(to right, #ffffff, #cbd5e1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-banner p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .disclaimer-box {
+      background: rgba(245, 158, 11, 0.1);
+      border-left: 4px solid var(--accent);
+      border-radius: 0 12px 12px 0;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .disclaimer-box h3 {
+      color: var(--accent);
+      font-size: 1.05rem;
+      margin-bottom: 0.35rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .disclaimer-box p {
+      color: #fde68a;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    .content-section {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      margin-bottom: 2rem;
+    }
+
+    .content-section h2 {
+      font-size: 1.4rem;
+      color: #ffffff;
+      margin: 1.8rem 0 0.8rem 0;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .content-section h2:first-of-type {
+      margin-top: 0;
+    }
+
+    .content-section p, .content-section ul {
+      color: var(--text-muted);
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+
+    .content-section ul {
+      padding-left: 1.5rem;
+    }
+
+    .content-section li {
+      margin-bottom: 0.5rem;
+    }
+
+    .content-section strong {
+      color: #f1f5f9;
+    }
+
+    footer {
+      border-top: 1px solid var(--card-border);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .quick-links {
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .quick-links a {
+      color: #818cf8;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .quick-links a:hover {
+      color: #a5b4fc;
+      text-decoration: underline;
+    }
+
+    @media (max-width: 640px) {
+      .hero-banner h1 { font-size: 1.6rem; }
+      .content-section { padding: 1.5rem; }
+      .header-container { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-container">
+      <a href="index.html" class="brand">
+        <div class="brand-icon">🎮</div>
+        <span>Tebak Angka</span>
+      </a>
+      <nav class="nav-tabs">
+        <a href="#privacy" class="tab-btn active" id="btn-privacy" onclick="showTab('privacy')">Kebijakan Privasi</a>
+        <a href="#terms" class="tab-btn" id="btn-terms" onclick="showTab('terms')">Syarat & Ketentuan</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="hero-banner">
+      <span class="badge">Edukasi & Simulasi Matematika</span>
+      <h1>Pusat Kebijakan & Ketentuan Layanan</h1>
+      <p>Dokumen resmi Kebijakan Privasi (Privacy Policy) dan Syarat & Ketentuan (Terms of Service) untuk aplikasi <strong>Tebak Angka</strong>.</p>
+    </div>
+
+    <!-- PEMBERITAHUAN PENTING SIMULASI -->
+    <div class="disclaimer-box">
+      <h3>⚠️ Penafian Penting (Simulasi Edukasi & Tanpa Uang Riil)</h3>
+      <p>
+        Aplikasi <strong>Tebak Angka</strong> adalah media simulasi dan edukasi matematika murni mengenai probabilitas dan psikologi bahaya perjudian. 
+        Aplikasi ini <strong>TIDAK MENYEDIAKAN perjudian dengan uang asli</strong>, tidak menerima setoran uang riil (deposit), dan <strong>TIDAK PERNAH memberikan penarikan dana (withdraw)</strong> atau hadiah berupa uang tunai maupun barang berharga apapun. Semua koin dan kredit di dalam aplikasi adalah nilai virtual fiktif.
+      </p>
+    </div>
+
+    <!-- SECTION 1: KEBIJAKAN PRIVASI -->
+    <div id="section-privacy" class="content-section">
+      <h2>Kebijakan Privasi (Privacy Policy)</h2>
+      <p><em>Terakhir diperbarui: 6 September 2026</em></p>
+      
+      <p>
+        Kebijakan Privasi ini menjelaskan bagaimana <strong>Tebak Angka</strong> ("kami", "aplikasi") mengelola, memproses, dan melindungi informasi pribadi pengguna saat menggunakan aplikasi mobile kami yang didistribusikan melalui Google Play Store.
+      </p>
+
+      <h2>1. Informasi yang Kami Kumpulkan</h2>
+      <p>Kami membatasi pengumpulan data hanya pada hal-hal yang penting untuk pengoperasian aplikasi:</p>
+      <ul>
+        <li><strong>Informasi Akun (Opsional):</strong> Apabila Anda masuk (login) menggunakan Google Sign-In (Firebase Authentication), kami menerima nama tampilan, alamat email, dan foto profil publik Anda untuk menyinkronkan profil dan progres virtual Anda.</li>
+        <li><strong>Data Aktivitas & Koin Virtual:</strong> Progres pencapaian, riwayat permainan simulasi, serta saldo kredit virtual disimpan secara lokal di perangkat Anda (melalui media penyimpanan terenkripsi/Redux state).</li>
+        <li><strong>Informasi Perangkat & Diagnostik:</strong> Informasi teknis dasar seperti model perangkat, versi OS Android, serta data analitik crash yang dikumpulkan secara anonim melalui Google Play Console & Google Services untuk menjaga kestabilan aplikasi.</li>
+      </ul>
+
+      <h2>2. Layanan Pihak Ketiga (Third-Party Services)</h2>
+      <p>Aplikasi ini mengintegrasikan layanan dari penyedia pihak ketiga terpercaya yang tunduk pada kebijakan privasi masing-masing:</p>
+      <ul>
+        <li><strong>Google Play Services & Firebase:</strong> Digunakan untuk autentikasi pengguna secara aman dan pemeliharaan backend dasar.</li>
+        <li><strong>Google Mobile Ads (AdMob):</strong> Kami menampilkan iklan banner, interstitial, dan iklan bervideo berhadiah (rewarded ads) untuk memberikan koin simulasi gratis. AdMob dapat mengumpulkan pengidentifikasi perangkat (Advertising ID) guna menyajikan iklan yang relevan atau sesuai regulasi privasi Google. Untuk informasi lebih lanjut, silakan baca <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener" style="color: #818cf8;">Kebijakan Privasi Iklan Google</a>.</li>
+      </ul>
+
+      <h2>3. Izin Akses Perangkat (Permissions)</h2>
+      <p>Aplikasi hanya meminta izin teknis minimum yang esensial, seperti:</p>
+      <ul>
+        <li><code>INTERNET</code> & <code>ACCESS_NETWORK_STATE</code>: Untuk memuat iklan AdMob, autentikasi Firebase, dan pembaruan aplikasi.</li>
+      </ul>
+
+      <h2>4. Privasi Anak-Anak (Children's Privacy)</h2>
+      <p>
+        Aplikasi kami ditujukan untuk remaja dan dewasa (13 tahun ke atas) guna memberikan edukasi literasi finansial dan bahaya perjudian. Kami tidak dengan sengaja mengumpulkan data pribadi dari anak-anak di bawah usia 13 tahun. Jika Anda adalah orang tua/wali dan mengetahui bahwa anak Anda memberikan data pribadi kepada kami, silakan hubungi kami agar kami dapat menghapus data tersebut segera.
+      </p>
+
+      <h2>5. Keamanan Data & Permintaan Penghapusan Akun</h2>
+      <p>
+        Kami berkomitmen melindungi data Anda. Apabila Anda menggunakan login akun Google dan ingin menghapus akun serta seluruh data terkait dari sistem kami, Anda dapat mengajukan permintaan penghapusan akun kapan saja dengan menghubungi kami melalui email kontak di bawah ini.
+      </p>
+
+      <h2>6. Kontak Pengembang</h2>
+      <p>
+        Jika Anda memiliki pertanyaan seputar Kebijakan Privasi ini, Anda dapat menghubungi kami melalui:
+      </p>
+      <p>
+        <strong>Email Pengembang:</strong> <a href="mailto:arkgnan@gmail.com" style="color: #818cf8;">arkgnan@gmail.com</a><br>
+        <strong>Pengembang / Pemilik Proyek:</strong> arkgnan<br>
+        <strong>Repositori:</strong> <a href="https://github.com/arkgnan/tebak-angka" target="_blank" rel="noopener" style="color: #818cf8;">github.com/arkgnan/tebak-angka</a>
+      </p>
+    </div>
+
+    <!-- SECTION 2: SYARAT & KETENTUAN -->
+    <div id="section-terms" class="content-section" style="display: none;">
+      <h2>Syarat dan Ketentuan (Terms of Service)</h2>
+      <p><em>Terakhir diperbarui: 6 September 2026</em></p>
+
+      <p>
+        Dengan mengunduh, memasang, atau menggunakan aplikasi <strong>Tebak Angka</strong>, Anda menyatakan telah membaca, memahami, dan menyetujui untuk terikat oleh Syarat dan Ketentuan ini.
+      </p>
+
+      <h2>1. Tujuan Edukasi & Simulasi</h2>
+      <p>
+        Tujuan utama dari aplikasi ini adalah sebagai sarana simulasi edukatif yang memaparkan cara kerja probabilitas matematika, algoritma mesin acak (RNG), serta trik psikologis (seperti <em>near-miss</em>, ilusi kontrol, dan jebakan keserakahan) yang kerap digunakan dalam perjudian daring.
+      </p>
+
+      <h2>2. Tidak Ada Nilai Uang Nyata (No Real-Money Value)</h2>
+      <ul>
+        <li>Kredit, saldo, koin, kelereng, atau poin apapun di dalam aplikasi ini adalah barang digital fiktif.</li>
+        <li>Kredit virtual <strong>TIDAK DAPAT</strong> ditukarkan, dicairkan, diperjualbelikan, atau ditebus dengan uang tunai, saldo dompet digital (e-wallet), pulsa, kripto, atau imbalan material apapun di dunia nyata.</li>
+        <li>Pengguna tidak dapat mendepositkan uang riil ke dalam aplikasi ini. Penambahan saldo virtual hanya dilakukan melalui bonus simulasi dalam game atau dengan sukarela menonton iklan pihak ketiga.</li>
+      </ul>
+
+      <h2>3. Hak Kekayaan Intelektual</h2>
+      <p>
+        Seluruh aset grafis, antarmuka, tata letak, kode sumber, efek suara, dan materi pendidikan di dalam aplikasi adalah milik pengembang aplikasi, kecuali jika dinyatakan lain atau menggunakan pustaka open-source yang berlisensi publik.
+      </p>
+
+      <h2>4. Pembatasan Tanggung Jawab (Limitation of Liability)</h2>
+      <p>
+        Aplikasi ini disediakan "sebagaimana adanya" (<em>as-is</em>) untuk tujuan rekreasi dan pembelajaran. Pengembang tidak bertanggung jawab atas keputusan finansial atau perilaku pengguna di luar aplikasi. Simulasi peluang kemenangan dalam game edukasi ini dirancang khusus untuk mendemonstrasikan ekspektasi matematis negatif dalam perjudian.
+      </p>
+
+      <h2>5. Perubahan Ketentuan</h2>
+      <p>
+        Kami berhak memperbarui atau merevisi Syarat dan Ketentuan ini dari waktu ke waktu. Setiap perubahan akan diumumkan dan dimuat secara terbuka pada halaman web ini.
+      </p>
+
+      <h2>6. Hubungi Kami</h2>
+      <p>
+        Untuk pertanyaan, masukan, atau keluhan terkait Ketentuan Layanan ini, hubungi:<br>
+        <strong>Email:</strong> <a href="mailto:arkgnan@gmail.com" style="color: #818cf8;">arkgnan@gmail.com</a>
+      </p>
+    </div>
+  </main>
+
+  <footer>
+    <div class="quick-links">
+      <a href="javascript:void(0)" onclick="showTab('privacy')">Kebijakan Privasi</a>
+      <span>•</span>
+      <a href="javascript:void(0)" onclick="showTab('terms')">Syarat & Ketentuan</a>
+      <span>•</span>
+      <a href="https://github.com/arkgnan/tebak-angka" target="_blank" rel="noopener">GitHub Project</a>
+    </div>
+    <p>&copy; 2026 Tebak Angka Edukasi - Seluruh Hak Cipta Dilindungi.</p>
+  </footer>
+
+  <script>
+    function showTab(tabName) {
+      const privacySection = document.getElementById('section-privacy');
+      const termsSection = document.getElementById('section-terms');
+      const btnPrivacy = document.getElementById('btn-privacy');
+      const btnTerms = document.getElementById('btn-terms');
+
+      if (tabName === 'terms') {
+        privacySection.style.display = 'none';
+        termsSection.style.display = 'block';
+        btnPrivacy.classList.remove('active');
+        btnTerms.classList.add('active');
+        window.location.hash = 'terms';
+      } else {
+        privacySection.style.display = 'block';
+        termsSection.style.display = 'none';
+        btnPrivacy.classList.add('active');
+        btnTerms.classList.remove('active');
+        window.location.hash = 'privacy';
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Auto-switch tab based on hash in URL
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.location.hash === '#terms') {
+        showTab('terms');
+      } else {
+        showTab('privacy');
+      }
+    });
+  </script>
+</body>
+</html>
