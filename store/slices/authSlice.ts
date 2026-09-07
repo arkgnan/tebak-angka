@@ -32,8 +32,7 @@ export const googleSignIn = createAsyncThunk(
       }
 
       GoogleSignin.configure({
-        webClientId:
-          "392591531045-s08rbnllclp4q96vsii18j6h2mftpk06.apps.googleusercontent.com",
+        webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID || "",
       });
 
       // Periksa dukungan Google Play Services

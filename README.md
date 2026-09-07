@@ -8,7 +8,7 @@
   <strong>Aplikasi simulasi interaktif untuk membongkar trik psikologi, ilusi kemenangan palsu, dan kepastian matematis di balik algoritma bandar judi online.</strong>
 </p>
 
-<p align="center">
+  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License MIT" />
   <img src="https://img.shields.io/badge/Expo-SDK_51-000020?style=flat&logo=expo" alt="Expo SDK 51" />
   <img src="https://img.shields.io/badge/React_Native-0.74.5-61DAFB?style=flat&logo=react" alt="React Native 0.74.5" />
   <img src="https://img.shields.io/badge/TypeScript-5.3-3178C6?style=flat&logo=typescript" alt="TypeScript 5.3" />
@@ -156,7 +156,7 @@ tebak-angka/
 
 1. **Clone repositori**:
    ```bash
-   git clone https://github.com/username/tebak-angka.git
+   git clone https://github.com/arkgnan/tebak-angka.git
    cd tebak-angka
    ```
 
@@ -166,23 +166,38 @@ tebak-angka/
    ```
    *(Script `postinstall` akan otomatis mengaplikasikan semua perbaikan di folder `patches/`)*
 
-3. **Konfigurasi Firebase & Google Services**:
-   - Pastikan file `google-services.json` diletakkan di direktori root dan `android/app/google-services.json`.
+3. **Konfigurasi Variabel Lingkungan (`.env`)**:
+   Salin template `.env.example` ke `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   *Secara default variabel sudah terisi dengan Google Test Ad IDs resmi agar aman saat dijalankan di emulator atau testing.*
 
-4. **Jalankan aplikasi di Android**:
+4. **Konfigurasi Firebase & Google Services**:
+   Salin template `google-services.json.example`:
+   ```bash
+   cp google-services.json.example google-services.json
+   cp google-services.json.example android/app/google-services.json
+   ```
+   *(Untuk pengujian Google Sign-In dengan proyek Firebase Anda sendiri, gunakan file `google-services.json` asli dari konsol Firebase Anda).*
+
+5. **Jalankan aplikasi di Android**:
    ```bash
    npx expo run:android
    ```
 
-5. **Validasi kode (Type Check)**:
+6. **Validasi kode (Type Check)**:
    ```bash
    npx tsc --noEmit
    ```
 
-6. **Pengujian Bundle Metro**:
-   ```bash
-   npx react-native bundle --platform android --dev true --entry-file index.ts --bundle-output /tmp/test-bundle.js
-   ```
+---
+
+## 🤝 Kontribusi & Kode Etik
+
+Kami sangat menyambut kontribusi dari komunitas!
+- Silakan baca panduan lengkap di [CONTRIBUTING.md](CONTRIBUTING.md).
+- Kami menjunjung tinggi lingkungan yang inklusif dan saling menghormati; baca pedoman kami di [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 ---
 
@@ -197,4 +212,4 @@ Aplikasi ini dibuat murni untuk **tujuan edukasi, literasi finansial, dan kesada
 
 ## 📄 Lisensi
 
-Proyek ini dilisensikan di bawah lisensi **MIT License**.
+Proyek ini dilisensikan di bawah lisensi [MIT License](LICENSE) &copy; 2026 Dedi Ananto. Bebas digunakan, dipelajari, dan dikembangkan untuk tujuan edukasi dan non-komersial maupun komersial sesuai ketentuan lisensi.

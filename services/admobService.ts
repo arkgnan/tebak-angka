@@ -3,12 +3,13 @@ import { NativeModules, TurboModuleRegistry } from "react-native";
 
 // ID Unit Iklan AdMob Resmi & Produksi:
 export const GOOGLE_TEST_REWARDED_ID = "ca-app-pub-3940256099942544/5224354917";
-export const PROD_REWARDED_AD_UNIT_ID = "ca-app-pub-8703649064343703/2122980851";
+export const PROD_REWARDED_AD_UNIT_ID =
+  process.env.EXPO_PUBLIC_ADMOB_REWARDED_ID || GOOGLE_TEST_REWARDED_ID;
 
 // ID Unit Iklan Interstitial (Layar Penuh Tanpa Reward - Khusus Tombol Keluar):
 export const GOOGLE_TEST_INTERSTITIAL_ID = "ca-app-pub-3940256099942544/1033173712";
-// Ganti dengan Unit ID Interstitial asli Anda dari dashboard AdMob saat rilis
-export const PROD_INTERSTITIAL_AD_UNIT_ID = "ca-app-pub-8703649064343703/6325220799";
+export const PROD_INTERSTITIAL_AD_UNIT_ID =
+  process.env.EXPO_PUBLIC_ADMOB_INTERSTITIAL_ID || GOOGLE_TEST_INTERSTITIAL_ID;
 
 /**
  * Memeriksa apakah aplikasi saat ini berjalan di dalam Expo Go Client.
