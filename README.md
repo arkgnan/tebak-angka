@@ -8,6 +8,16 @@
   <strong>Aplikasi simulasi interaktif untuk membongkar trik psikologi, ilusi kemenangan palsu, dan kepastian matematis di balik algoritma bandar judi online.</strong>
 </p>
 
+<p align="center">
+  <a href="https://play.google.com/store/apps/details?id=com.arkgnan.tebakangka" target="_blank" rel="noopener noreferrer">
+    <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" height="75" alt="Temukan di Google Play" />
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://play.google.com/store/apps/details?id=com.arkgnan.tebakangka">
+    <img src="https://img.shields.io/badge/Google_Play-com.arkgnan.tebakangka-0086F4?style=flat&logo=google-play&logoColor=white" alt="Google Play" />
+  </a>
   <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License MIT" />
   <img src="https://img.shields.io/badge/Expo-SDK_51-000020?style=flat&logo=expo" alt="Expo SDK 51" />
   <img src="https://img.shields.io/badge/React_Native-0.74.5-61DAFB?style=flat&logo=react" alt="React Native 0.74.5" />
@@ -146,13 +156,22 @@ tebak-angka/
 
 ## 🚀 Memulai (Getting Started)
 
-### Prasyarat
+### 📲 Pasang Langsung dari Google Play Store
+Bagi Anda yang ingin langsung mencoba aplikasi simulasi edukasi ini tanpa melakukan kompilasi kode sumber:
+* **Download Resmi**: [Tebak Angka di Google Play Store](https://play.google.com/store/apps/details?id=com.arkgnan.tebakangka)
+* **ID Paket**: `com.arkgnan.tebakangka`
+
+---
+
+### 💻 Menjalankan dari Kode Sumber (Local Development)
+
+#### Prasyarat
 - **Node.js**: Versi `>= 18.0.0`
 - **JDK**: Java Development Kit 17
 - **Android Studio**: Android SDK Build-Tools 34 & Emulator / Device fisik Android
 - **Expo CLI**: `npm install -g expo-cli`
 
-### Langkah Instalasi
+#### Langkah Instalasi
 
 1. **Clone repositori**:
    ```bash
