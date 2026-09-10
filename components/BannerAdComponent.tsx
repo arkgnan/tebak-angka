@@ -59,7 +59,11 @@ export default function BannerAdComponent({
           setAdLoaded(true);
         }}
         onAdFailedToLoad={(error: any) => {
-          console.log("[AdMob Banner] Failed to load:", error);
+          console.warn(
+            `[AdMob Banner] Gagal memuat banner (Unit ID: ${adUnitId}):`,
+            error?.code || error,
+            error?.message || ""
+          );
           setAdFailed(true);
         }}
       />

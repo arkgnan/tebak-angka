@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  SafeAreaView,
   StyleProp,
   ViewStyle,
   TextStyle,
@@ -13,6 +12,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import LottieView from "lottie-react-native";
 import { StackNavigation } from "../App";
@@ -221,7 +221,7 @@ export default function QuizScreen() {
     }
 
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={["top"]}>
         {/* Banner Ad permanen di bagian atas */}
         <BannerAdComponent position="top" />
 
@@ -316,7 +316,7 @@ export default function QuizScreen() {
             </TouchableOpacity>
           </View>
         </ScrollView>
-      </View>
+      </SafeAreaView>
     );
   }
 
@@ -327,7 +327,7 @@ export default function QuizScreen() {
       ((activeSession.currentIndex + 1) / activeSession.questions.length) * 100;
 
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={["top"]}>
         {/* Banner Ad permanen di bagian atas */}
         <BannerAdComponent position="top" />
 
@@ -429,17 +429,14 @@ export default function QuizScreen() {
             </View>
           )}
         </ScrollView>
-      </View>
+      </SafeAreaView>
     );
   }
 
   // Render Layar Utama Kuis (Tab 0: Pilihan Topik, Tab 1: Riwayat Quiz)
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Banner Ad permanen di bagian atas */}
-      <BannerAdComponent position="top" />
-
-      {/* Header Halaman Kuis */}
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      {/* Header Halaman Kuis (Selalu menetap di bawah Status Bar OS) */}
       <View style={styles.topBar}>
         <TouchableOpacity
           style={styles.backBtn}
@@ -452,6 +449,9 @@ export default function QuizScreen() {
           <Text style={styles.creditBadgeText}>{credits} Kredit</Text>
         </View>
       </View>
+
+      {/* Banner Ad permanen di bawah Header */}
+      <BannerAdComponent position="top" />
 
       {/* Tab Switcher: Pilihan Topik & Riwayat Quiz */}
       <View style={styles.tabContainer}>
@@ -707,7 +707,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingTop: 14,
+    paddingTop: 12,
     paddingBottom: 12,
     borderBottomWidth: 1,
     borderBottomColor: "#172236",

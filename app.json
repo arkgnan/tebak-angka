@@ -17,7 +17,7 @@
         "backgroundColor": "#17263A"
       },
       "package": "com.arkgnan.tebakangka",
-      "versionCode": 6,
+      "versionCode": 7,
       "googleServicesFile": "./google-services.json",
       "permissions": [
         "INTERNET"

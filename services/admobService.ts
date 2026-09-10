@@ -2,6 +2,8 @@ import Constants, { ExecutionEnvironment } from "expo-constants";
 import { NativeModules, TurboModuleRegistry } from "react-native";
 
 // ID Unit Iklan AdMob Resmi & Produksi:
+// Di public repository, fallback default adalah Google Test ID resmi.
+// ID produksi pribadi hanya dibaca dari .env lokal Anda (yang di-ignore oleh git).
 export const GOOGLE_TEST_REWARDED_ID = "ca-app-pub-3940256099942544/5224354917";
 export const PROD_REWARDED_AD_UNIT_ID =
   process.env.EXPO_PUBLIC_ADMOB_REWARDED_ID || GOOGLE_TEST_REWARDED_ID;
@@ -14,7 +16,7 @@ export const PROD_INTERSTITIAL_AD_UNIT_ID =
 // ID Unit Iklan Banner (Result & Quiz Screen):
 export const GOOGLE_TEST_BANNER_ID = "ca-app-pub-3940256099942544/6300978111";
 export const PROD_BANNER_AD_UNIT_ID =
-  process.env.EXPO_PUBLIC_ADMOB_BANNER_ID || "ca-app-pub-8703649064343703/9396879338";
+  process.env.EXPO_PUBLIC_ADMOB_BANNER_ID || GOOGLE_TEST_BANNER_ID;
 
 /**
  * Memeriksa apakah aplikasi saat ini berjalan di dalam Expo Go Client.
@@ -79,8 +81,8 @@ let exitAdOnDoneCallback: (() => void) | null = null;
 
 /**
  * Melakukan pre-loading Iklan Interstitial di background agar saat pengguna
- * menekan tombol keluar (2x back), iklan sudah siap 100% dan langsung tampil
- * tanpa jeda waktu unduh.
+ * menekan tombol keluar (2x back atau tombol Keluar), iklan sudah siap 100%
+ * dan langsung tampil tanpa jeda waktu unduh.
  */
 export const preloadExitInterstitialAd = () => {
   if (!isAdMobAvailable() || isCurrentlyLoadingExitAd || isExitAdReady) {
@@ -105,7 +107,17 @@ export const preloadExitInterstitialAd = () => {
       requestNonPersonalizedAdsOnly: true,
     });
 
-    const unsubscribeLoaded = interstitial.addAdEventListener(
+    let unsubscribeLoaded: () => void = () => {};
+    let unsubscribeClosed: () => void = () => {};
+    let unsubscribeError: () => void = () => {};
+
+    const cleanup = () => {
+      try { unsubscribeLoaded(); } catch (e) {}
+      try { unsubscribeClosed(); } catch (e) {}
+      try { unsubscribeError(); } catch (e) {}
+    };
+
+    unsubscribeLoaded = interstitial.addAdEventListener(
       AdEventType.LOADED,
       () => {
         isCurrentlyLoadingExitAd = false;
@@ -115,14 +127,13 @@ export const preloadExitInterstitialAd = () => {
       }
     );
 
-    const unsubscribeClosed = interstitial.addAdEventListener(
+    unsubscribeClosed = interstitial.addAdEventListener(
       AdEventType.CLOSED,
       () => {
         console.log("[AdMob] Exit Interstitial Ad ditutup oleh user.");
         isExitAdReady = false;
         exitInterstitialAdInstance = null;
-        unsubscribeLoaded();
-        unsubscribeClosed();
+        cleanup();
 
         if (exitAdOnDoneCallback) {
           const cb = exitAdOnDoneCallback;
@@ -135,16 +146,14 @@ export const preloadExitInterstitialAd = () => {
       }
     );
 
-    const unsubscribeError = interstitial.addAdEventListener(
+    unsubscribeError = interstitial.addAdEventListener(
       AdEventType.ERROR,
       (err: any) => {
         isCurrentlyLoadingExitAd = false;
         isExitAdReady = false;
         exitInterstitialAdInstance = null;
         console.warn("[AdMob] Gagal preload exit interstitial ad:", err);
-        unsubscribeLoaded();
-        unsubscribeClosed();
-        unsubscribeError();
+        cleanup();
 
         // Jika user sedang menunggu keluar saat error terjadi, jalankan callback keluar
         if (exitAdOnDoneCallback) {
@@ -163,27 +172,45 @@ export const preloadExitInterstitialAd = () => {
 };
 
 /**
- * Menampilkan Iklan Interstitial (tanpa reward) saat pengguna keluar aplikasi.
+ * Menampilkan Iklan Interstitial (tanpa reward) saat pengguna keluar aplikasi atau logout.
  * Jika iklan sudah di-preload, iklan langsung muncul instan.
- * Jika belum selesai di-preload, sistem akan menunggu sampai ad selesai dimuat.
+ * Jika belum selesai di-preload, sistem akan menunggu sampai ad selesai dimuat (timeout 3.5 detik).
  */
 export const showExitInterstitialAd = (onDone: () => void) => {
+  let hasHandled = false;
+  const safeDone = () => {
+    if (!hasHandled) {
+      hasHandled = true;
+      onDone();
+    }
+  };
+
   if (!isAdMobAvailable()) {
-    console.log("[AdMob] Modul AdMob tidak tersedia, langsung keluar.");
-    onDone();
+    console.log("[AdMob] Modul AdMob tidak tersedia, langsung lanjutkan.");
+    safeDone();
     return;
   }
 
   // KASUS 1: Iklan sudah selesai di-preload sebelumnya (Paling Cepat & Instan)
   if (isExitAdReady && exitInterstitialAdInstance) {
     console.log("[AdMob] Menampilkan pre-loaded Exit Interstitial Ad...");
-    exitAdOnDoneCallback = onDone;
+    exitAdOnDoneCallback = safeDone;
+
+    // Timeout pengaman darurat 10s jika event tertahan
+    const fallbackTimer = setTimeout(() => {
+      if (exitAdOnDoneCallback) {
+        console.log("[AdMob] Preloaded ad fallback timeout, lanjutkan.");
+        safeDone();
+      }
+    }, 10000);
+
     try {
       exitInterstitialAdInstance.show();
       return;
     } catch (e) {
+      clearTimeout(fallbackTimer);
       console.warn("[AdMob] Gagal show preloaded interstitial:", e);
-      onDone();
+      safeDone();
       return;
     }
   }

@@ -16,7 +16,7 @@ import {
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { StackNavigation } from "../App";
 import { useAppDispatch, useAppSelector } from "../hooks/useRedux";
-import { signOut } from "../store/slices/authSlice";
+import { signOut, setUser } from "../store/slices/authSlice";
 import { resetGameStats } from "../store/slices/gameSlice";
 import {
   showExitInterstitialAd,
@@ -117,10 +117,19 @@ export default function Home() {
         text: "Keluar",
         style: "destructive",
         onPress: () => {
-          dispatch(signOut());
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "Login" }],
+          showExitInterstitialAd(async () => {
+            try {
+              await dispatch(signOut()).unwrap();
+            } catch (e) {
+              console.warn("Sign out error:", e);
+            } finally {
+              // Pastikan state user langsung null sebelum navigasi reset ke Login
+              dispatch(setUser(null));
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "Login" }],
+              });
+            }
           });
         },
       },
