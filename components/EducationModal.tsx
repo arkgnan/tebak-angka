@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface EducationModalProps {
   visible: boolean;
@@ -20,197 +21,292 @@ export default function EducationModal({
   return (
     <Modal
       visible={visible}
-      transparent
+      transparent={false}
       animationType="slide"
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        <View style={styles.card}>
-          <View style={styles.header}>
-            <Text style={styles.badge}>EDUKASI & FAKTA NYATA</Text>
-            <Text style={styles.title}>🧠 Membongkar Rahasia Bandar Judol</Text>
+      <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+        {/* Top Bar Header */}
+        <View style={styles.topBar}>
+          <TouchableOpacity style={styles.backBtn} onPress={onClose}>
+            <Text style={styles.backBtnText}>← Kembali</Text>
+          </TouchableOpacity>
+          <View style={styles.badgeTop}>
+            <Text style={styles.badgeTopText}>🧠 EDUKASI & FAKTA NYATA</Text>
+          </View>
+        </View>
+
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Header Section */}
+          <View style={styles.headerSection}>
+            <Text style={styles.mainTitle}>
+              🧠 Membongkar Rahasia Bandar Judol
+            </Text>
             <Text style={styles.subtitle}>
-              Mengapa pemain TIDAK PERNAH bisa menang dalam judi online?
+              Mengapa pemain TIDAK PERNAH bisa menang melawan algoritma bandar
+              dalam jangka panjang?
             </Text>
           </View>
 
-          <ScrollView
-            style={styles.scroll}
-            contentContainerStyle={styles.scrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            <View style={styles.section}>
+          {/* Section 1: Algoritma Umpan */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionIcon}>🎰</Text>
               <Text style={styles.sectionTitle}>
                 1. Algoritma Umpan (Baiting Dopamin)
               </Text>
-              <Text style={styles.sectionText}>
-                Sistem tidak menggunakan angka acak murni (RNG jujur). Bandar
-                memprogram algoritma agar pemain kalah beruntun (3-5 kali), lalu
-                sengaja memberikan 1 kemenangan. Otak Anda dibanjiri dopamin dan
-                tertipu ilusi bahwa kemenangan berikutnya sudah dekat.
-              </Text>
             </View>
+            <Text style={styles.sectionText}>
+              Sistem tidak menggunakan angka acak murni (RNG jujur). Bandar
+              memprogram algoritma agar pemain kalah beruntun (3-5 kali), lalu
+              sengaja memberikan 1 kemenangan kecil. Otak Anda dibanjiri hormon
+              dopamin dan tertipu ilusi bahwa kemenangan berikutnya sudah dekat.
+            </Text>
+          </View>
 
-            <View style={styles.section}>
+          {/* Section 2: Dilarang Menang Beruntun */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionIcon}>🔒</Text>
               <Text style={styles.sectionTitle}>
-                2. Dilarang Menang Beruntun
-              </Text>
-              <Text style={styles.sectionText}>
-                Pernahkah Anda memperhatikan bahwa setelah menang sekali, putaran
-                berikutnya selalu ludes? Algoritma bandar langsung mengunci
-                kekalahan agar modal dan profit Anda disedot kembali tanpa
-                sempat ditarik (withdraw).
+                2. Dilarang Menang Beruntun (Loss-Locking)
               </Text>
             </View>
+            <Text style={styles.sectionText}>
+              Pernahkah Anda memperhatikan bahwa setelah menang sekali, putaran
+              berikutnya selalu ludes? Algoritma bandar langsung mengunci
+              kekalahan otomatis agar modal dan profit Anda disedot kembali
+              tanpa sempat ditarik (withdraw).
+            </Text>
+          </View>
 
-            <View style={styles.section}>
+          {/* Section 3: Ilusi Top-Up & Sunk Cost */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionIcon}>💸</Text>
               <Text style={styles.sectionTitle}>
                 3. Ilusi Top-Up & Sunk Cost Fallacy
               </Text>
-              <Text style={styles.sectionText}>
-                Menonton iklan pada game ini mensimulasikan top-up uang asli.
-                Pemain merasa "cuma depo sedikit lagi untuk balas modal".
-                Padahal, semakin sering Anda top-up, semakin dalam lubang boncos
-                yang Anda gali.
-              </Text>
             </View>
+            <Text style={styles.sectionText}>
+              Pemain merasa "cuma depo sedikit lagi untuk balas modal".
+              Padahal, semakin sering Anda top-up, semakin dalam lubang boncos
+              yang Anda gali. Inilah pintu utama yang menjebak jutaan korban ke
+              dalam pinjaman online (pinjol).
+            </Text>
+          </View>
 
-            <View style={styles.section}>
+          {/* Section 4: Binary Option & Judi Berkedok Trading */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionIcon}>📈</Text>
               <Text style={styles.sectionTitle}>
-                4. House Always Wins (Bandar Selalu Menang)
-              </Text>
-              <Text style={styles.sectionText}>
-                Secara hukum probabilitas dan matematika terapan, peluang selalu
-                berat sebelah ke bandar. Satu-satunya cara agar tidak kalah judi
-                online adalah: JANGAN PERNAH BERMAIN!
+                4. Kedok Trading Binary Option (Binomo / Quotex)
               </Text>
             </View>
+            <Text style={styles.sectionText}>
+              Platform binary option bukanlah investasi atau bursa saham resmi
+              (dilarang Bappebti & OJK). Mekanismenya murni tebak-tebakan harga
+              50:50 dengan grafik internal yang bisa disentak sesuka server
+              (trik candle jarum detik terakhir). Lebih dari 70% kerugian pemain
+              mengalir langsung ke kantong affiliate/influencer!
+            </Text>
+          </View>
 
-            <View style={styles.hotlineBox}>
-              <Text style={styles.hotlineTitle}>
-                🚨 BUTUH BANTUAN BERHENTI JUDOL?
-              </Text>
-              <Text style={styles.hotlineItem}>
-                • Hotline SEJIWA Kemenkes: 119 (ext 8)
-              </Text>
-              <Text style={styles.hotlineItem}>
-                • Aduan Konten Komdigi: aduankonten.id / WA: 0811-9224-545
-              </Text>
-              <Text style={styles.hotlineItem}>
-                • Laporkan Rekening Penampung: cekrekening.id
+          {/* Section 5: House Always Wins */}
+          <View style={styles.section}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionIcon}>⚖️</Text>
+              <Text style={styles.sectionTitle}>
+                5. House Always Wins (Kemustahilan Matematis)
               </Text>
             </View>
-          </ScrollView>
+            <Text style={styles.sectionText}>
+              Secara hukum matematika probabilitas terapan, Return to Player (RTP)
+              selalu diatur di bawah 100% untuk keuntungan pengelola. Makin lama
+              Anda bermain, peluang bangkrut mendekati 100%. Satu-satunya cara
+              pasti untuk mengalahkan bandar adalah: JANGAN PERNAH BERMAIN!
+            </Text>
+          </View>
 
-          <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
+          {/* Hotline Box Darurat */}
+          <View style={styles.hotlineBox}>
+            <Text style={styles.hotlineTitle}>
+              🚨 BUTUH BANTUAN BERHENTI DARI KECANDUAN?
+            </Text>
+            <Text style={styles.hotlineItem}>
+              • <Text style={styles.boldWhite}>Hotline SEJIWA Kemenkes:</Text> 119 (ext 8)
+            </Text>
+            <Text style={styles.hotlineItem}>
+              • <Text style={styles.boldWhite}>Aduan Konten Komdigi:</Text> aduankonten.id / WA: 0811-9224-545
+            </Text>
+            <Text style={styles.hotlineItem}>
+              • <Text style={styles.boldWhite}>Cek & Lapor Rekening Penipu:</Text> cekrekening.id
+            </Text>
+          </View>
+        </ScrollView>
+
+        {/* Fixed Bottom Action Bar */}
+        <View style={styles.bottomBar}>
+          <TouchableOpacity
+            style={styles.closeBtn}
+            onPress={onClose}
+            activeOpacity={0.8}
+          >
             <Text style={styles.closeBtnText}>Saya Mengerti & Sadar</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
+  safeArea: {
     flex: 1,
-    backgroundColor: "rgba(10, 15, 29, 0.9)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 16,
+    backgroundColor: "#0B121E",
   },
-  card: {
-    backgroundColor: "#161F30",
-    borderRadius: 24,
-    width: "100%",
-    maxWidth: 440,
-    height: "82%",
-    maxHeight: "88%",
-    padding: 20,
+  topBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#1A2638",
+  },
+  backBtn: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: "#162235",
+  },
+  backBtnText: {
+    color: "#00E5FF",
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  badgeTop: {
+    backgroundColor: "rgba(0, 229, 255, 0.12)",
+    borderColor: "#00E5FF",
     borderWidth: 1,
-    borderColor: "#283954",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
-  header: {
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  badge: {
-    backgroundColor: "#00E5FF",
-    color: "#0B132B",
+  badgeTopText: {
+    color: "#00E5FF",
     fontSize: 10,
     fontWeight: "800",
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 10,
-    marginBottom: 6,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "800",
-    color: "#FFFFFF",
-    textAlign: "center",
-  },
-  subtitle: {
-    fontSize: 12,
-    color: "#8FA3BF",
-    textAlign: "center",
-    marginTop: 4,
+    letterSpacing: 0.5,
   },
   scroll: {
     flex: 1,
-    marginVertical: 8,
   },
   scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
     paddingBottom: 24,
   },
+  headerSection: {
+    marginBottom: 20,
+  },
+  mainTitle: {
+    fontSize: 22,
+    fontWeight: "900",
+    color: "#FFFFFF",
+    lineHeight: 28,
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 13,
+    color: "#8FA3BF",
+    lineHeight: 19,
+  },
   section: {
-    backgroundColor: "#0E1524",
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 10,
-    borderLeftWidth: 3,
+    backgroundColor: "#131D2D",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 14,
+    borderLeftWidth: 4,
     borderLeftColor: "#FFB300",
+    borderWidth: 1,
+    borderColor: "#1F2E45",
+  },
+  sectionHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 8,
+  },
+  sectionIcon: {
+    fontSize: 18,
   },
   sectionTitle: {
-    fontSize: 13,
-    fontWeight: "700",
+    fontSize: 14,
+    fontWeight: "800",
     color: "#FFB300",
-    marginBottom: 4,
+    flex: 1,
   },
   sectionText: {
-    fontSize: 12,
+    fontSize: 12.5,
     color: "#BAC9DC",
-    lineHeight: 18,
+    lineHeight: 19,
   },
   hotlineBox: {
-    backgroundColor: "#2E151E",
-    borderRadius: 14,
-    padding: 14,
-    borderWidth: 1,
+    backgroundColor: "#26131D",
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1.5,
     borderColor: "#FF5252",
-    marginVertical: 6,
+    marginTop: 8,
+    marginBottom: 12,
   },
   hotlineTitle: {
     fontSize: 12,
-    fontWeight: "800",
+    fontWeight: "900",
     color: "#FF5252",
-    marginBottom: 6,
+    letterSpacing: 0.5,
+    marginBottom: 10,
   },
   hotlineItem: {
     fontSize: 12,
-    color: "#FFD0D0",
-    lineHeight: 18,
+    color: "#E2CFD6",
+    lineHeight: 20,
+    marginBottom: 4,
+  },
+  boldWhite: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+  },
+  bottomBar: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 14,
+    borderTopWidth: 1,
+    borderTopColor: "#1A2638",
+    backgroundColor: "#0E1726",
   },
   closeBtn: {
     backgroundColor: "#00E5FF",
     borderRadius: 14,
-    paddingVertical: 14,
+    paddingVertical: 15,
     alignItems: "center",
-    marginTop: 10,
+    justifyContent: "center",
+    shadowColor: "#00E5FF",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 6,
   },
   closeBtnText: {
-    color: "#0B132B",
+    color: "#07111E",
     fontSize: 15,
-    fontWeight: "700",
+    fontWeight: "900",
+    letterSpacing: 0.5,
   },
 });

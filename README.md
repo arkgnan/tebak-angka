@@ -64,6 +64,10 @@ Aplikasi **Tebak Angka** menghadirkan **5 simulator permainan kasino online** me
 - **Trik yang Dibongkar**: *Taruhan Terkirim Dulu ke Server*.
 - **Cara Kerja**: Mensimulasikan pemain yang harus memilih Batu `✊`, Gunting `✌️`, atau Kertas `✋` terlebih dahulu. Pilihan dikirim ke server sebelum tangan bandar dikocok, sehingga algoritma bandar selalu mengeluarkan lawan yang mengalahkan pemain.
 
+### 6. 📈 Trading Binary Option (Simulasi Binomo)
+- **Trik yang Dibongkar**: *Manipulasi Grafik dan Waktu Entry*.
+- **Cara Kerja**: Mensimulasikan grafik harga aset yang selalu bergerak melawan arah taruhan pemain. Candle sering muncul hanya dalam hitungan milidetik di antara waktu entry dan closing untuk menipu pemain.
+
 ---
 
 ## ✨ Fitur-Fitur Utama
@@ -72,7 +76,7 @@ Aplikasi **Tebak Angka** menghadirkan **5 simulator permainan kasino online** me
   - Menghitung total putaran, tingkat kemenangan (*win rate*), dan simulasi uang rupiah yang hangus jika bertaruh dengan uang asli.
   - Tab swipe navigasi antara Beranda Statistik dan Menu Permainan.
 - **📜 Riwayat Putaran Terakhir (Audit Trail)**:
-  - Mencatat detail tiap putaran dari semua 5 game dengan status Menang, Kalah, atau Balik Modal.
+  - Mencatat detail tiap putaran dari semua 6 game dengan status Menang, Kalah, atau Balik Modal.
   - Tombol expand *"Lihat Lebih Banyak"* untuk meninjau riwayat putaran sebelumnya.
 - **💡 Fakta Ilmiah Acak**:
   - Bank edukasi 10 fakta ilmiah & psikologi judi online yang berganti otomatis setiap aplikasi dibuka.
@@ -131,6 +135,7 @@ tebak-angka/
 │   ├── react-native-google-mobile-ads+14.11.0.patch
 │   └── react-native-screens+3.31.1.patch
 ├── screens/
+│   ├── BinaryGame.tsx         # Game 6: Trading Binary Option (Simulasi Binomo)
 │   ├── CrashGame.tsx          # Game 2: Roket Boncos (Crash / Aviator)
 │   ├── Game.tsx               # Game 1: Tebak Angka (Higher / Lower)
 │   ├── Home.tsx               # Dashboard statistik & menu tab permainan
@@ -138,7 +143,7 @@ tebak-angka/
 │   ├── Result.tsx             # Layar pengumuman hasil Tebak Angka
 │   ├── SlotGame.tsx           # Game 4: Slot Rungkad 777 (3-Reel Slot)
 │   ├── SuitGame.tsx           # Game 5: Suit Bandar Licik (Batu Gunting Kertas)
-│   └── WheelGame.tsx          # Game 3: Roda Putar Ilusi (Lucky Wheel)
+│   ├── WheelGame.tsx          # Game 3: Roda Putar Ilusi (Lucky Wheel)
 ├── services/
 │   ├── admobService.ts        # Service inisialisasi & unit ID Google Mobile Ads
 │   └── soundService.ts        # Service audio & getar haptic terintegrasi

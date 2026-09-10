@@ -2,7 +2,7 @@ import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 
 export const SCIENTIFIC_FACTS = [
-  "Algoritma judi online dirancang agar pemain 100% bangkrut dalam jangka panjang. Coba semua 5 permainan untuk membuktikannya!",
+  "Algoritma judi online dirancang agar pemain 100% bangkrut dalam jangka panjang. Coba semua permainan untuk membuktikannya!",
   "Kemenangan di awal hanyalah umpan psikologis bandar agar hormon dopaminmu meledak dan kamu kecanduan deposit.",
   "Mitos 'jam gacor' dan 'pola spin' hanyalah tipuan affiliator untuk menjebak korban baru mendaftar.",
   "Secara matematis, Return to Player (RTP) selalu diatur menguntungkan bandar. Makin lama bermain, peluang bangkrut mendekati 100%.",

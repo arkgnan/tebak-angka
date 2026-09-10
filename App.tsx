@@ -14,6 +14,7 @@ import WheelGame from "./screens/WheelGame";
 import SlotGame from "./screens/SlotGame";
 import SuitGame from "./screens/SuitGame";
 import QuizScreen from "./screens/QuizScreen";
+import BinaryOptionGame from "./screens/BinaryOptionGame";
 
 // Catatan: Pada React Native Android, Firebase diinisialisasi secara otomatis
 // melalui file google-services.json saat aplikasi pertama kali dijalankan.
@@ -31,6 +32,7 @@ export type RootStackParamList = {
   WheelGame: undefined;
   SlotGame: undefined;
   SuitGame: undefined;
+  BinaryOptionGame: undefined;
   QuizScreen: undefined;
   Result: {
     winner: boolean;
@@ -82,6 +84,7 @@ const MainApp = () => {
         <Stack.Screen name="WheelGame" component={WheelGame} />
         <Stack.Screen name="SlotGame" component={SlotGame} />
         <Stack.Screen name="SuitGame" component={SuitGame} />
+        <Stack.Screen name="BinaryOptionGame" component={BinaryOptionGame} />
         <Stack.Screen name="QuizScreen" component={QuizScreen} />
         <Stack.Screen
           name="Result"

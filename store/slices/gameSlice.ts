@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export interface GameRoundResult {
-  gameType?: "higher-lower" | "crash" | "wheel" | "slot" | "suit";
+  gameType?: "higher-lower" | "crash" | "wheel" | "slot" | "suit" | "binary-option";
   gameTitle?: string;
   winner: boolean;
   baseNumber?: number;
@@ -50,6 +50,7 @@ export interface GameState {
       wheel: { played: number; wins: number };
       slot: { played: number; wins: number };
       suit: { played: number; wins: number };
+      binaryOption?: { played: number; wins: number };
     };
   };
   quizStats: {
@@ -73,6 +74,7 @@ const initialGamesPlayed = {
   wheel: { played: 0, wins: 0 },
   slot: { played: 0, wins: 0 },
   suit: { played: 0, wins: 0 },
+  binaryOption: { played: 0, wins: 0 },
 };
 
 const initialState: GameState = {
@@ -520,6 +522,84 @@ const gameSlice = createSlice({
       state.quizHistory = [sessionRecord, ...(state.quizHistory || []).slice(0, 49)];
     },
 
+    playBinaryOptionRound: (
+      state,
+      action: PayloadAction<{
+        won: boolean;
+        betCredits: number;
+        assetTitle: string;
+        direction: "up" | "down";
+        entryPrice: number;
+        exitPrice: number;
+        isLastSecondSpike?: boolean;
+      }>,
+    ) => {
+      const {
+        won,
+        betCredits,
+        assetTitle,
+        direction,
+        entryPrice,
+        exitPrice,
+        isLastSecondSpike,
+      } = action.payload;
+
+      if (state.credits < betCredits) return;
+
+      state.stats.totalPlayed += 1;
+      state.stats.simulatedMoneyLost += betCredits * 50000;
+
+      let rewardCredits = 0;
+      let explanation = "";
+
+      if (won) {
+        rewardCredits = betCredits * 2; // Payout 100% (+betCredits)
+        state.credits = state.credits - betCredits + rewardCredits;
+        state.stats.totalWins += 1;
+        state.lastWon = true;
+        state.consecutiveLosses = 0;
+        explanation = `Tebakan ${direction === "up" ? "NAIK (BUY)" : "TURUN (SELL)"} pada ${assetTitle} berhasil! Entry: ${entryPrice.toFixed(2)}, Exit: ${exitPrice.toFixed(2)}. Dapat +${rewardCredits} Kredit (Untung +${betCredits} Kredit). Bandar sengaja membiarkanmu menang di awal agar hormon dopaminmu meledak dan kamu tergiur melipatgandakan taruhan!`;
+      } else {
+        state.credits -= betCredits;
+        state.stats.totalLosses += 1;
+        state.lastWon = false;
+        state.consecutiveLosses += 1;
+        if (isLastSecondSpike) {
+          state.stats.nearMissCount = (state.stats.nearMissCount || 0) + 1;
+          explanation = `💥 JARUM CANDLE DETIK TERAKHIR! Tebakanmu ${direction === "up" ? "NAIK" : "TURUN"} meleset tipis (Entry: ${entryPrice.toFixed(2)}, Exit: ${exitPrice.toFixed(2)}). Di detik terakhir, algoritma bandar sengaja membanting harga 1 pips untuk membatalkan kemenanganmu!`;
+        } else {
+          explanation = `Tebakan ${direction === "up" ? "NAIK" : "TURUN"} pada ${assetTitle} salah! Entry: ${entryPrice.toFixed(2)}, Exit: ${exitPrice.toFixed(2)}. Saldo hangus -${betCredits} Kredit. Binary option bukanlah investasi atau bursa saham resmi, melainkan judi tebak harga ilegal!`;
+        }
+      }
+
+      if (!state.stats.gamesPlayed) {
+        state.stats.gamesPlayed = initialGamesPlayed;
+      }
+      if (!state.stats.gamesPlayed.binaryOption) {
+        state.stats.gamesPlayed.binaryOption = { played: 0, wins: 0 };
+      }
+      state.stats.gamesPlayed.binaryOption.played += 1;
+      if (won) {
+        state.stats.gamesPlayed.binaryOption.wins += 1;
+      }
+
+      const result: GameRoundResult = {
+        gameType: "binary-option",
+        gameTitle: `Binary Option (${assetTitle})`,
+        winner: won,
+        rewardCredits: won ? rewardCredits : 0,
+        explanation,
+        consecutiveLosses: state.consecutiveLosses,
+        timestamp: Date.now(),
+      };
+
+      state.lastRound = result;
+      state.history.unshift(result);
+      if (state.history.length > 20) {
+        state.history.pop();
+      }
+    },
+
     watchAdReward: (state) => {
       state.credits += 5;
       state.stats.totalAdsWatched += 1;
@@ -551,6 +631,7 @@ export const {
   playWheelRound,
   playSlotRound,
   playSuitRound,
+  playBinaryOptionRound,
   recordQuizSession,
   watchAdReward,
   resetGameStats,

@@ -29,7 +29,8 @@ import ShareModal from "../components/ShareModal";
 
 const SCIENTIFIC_FACTS = [
   "Pemain tidak pernah bisa menang melawan algoritma bandar.",
-  "Algoritma judi online dirancang agar pemain 100% bangkrut dalam jangka panjang. Coba semua 5 permainan untuk membuktikannya!",
+  "Algoritma judi online dirancang agar pemain 100% bangkrut dalam jangka panjang. Coba semua 6 permainan untuk membuktikannya!",
+  "Binary option bukanlah investasi atau trading legal: Bappebti & OJK melarangnya karena mekanismenya murni tebak angka 50:50 dengan spread dan manipulasi harga server!",
   "Kemenangan di awal hanyalah umpan psikologis bandar agar hormon dopaminmu meledak dan kamu kecanduan deposit.",
   "Mitos 'jam gacor' dan 'pola spin' hanyalah tipuan affiliator untuk menjebak korban baru mendaftar.",
   "Secara matematis, Return to Player (RTP) selalu diatur menguntungkan bandar. Makin lama bermain, peluang bangkrut mendekati 100%.",
@@ -193,7 +194,7 @@ export default function Home() {
               🎮 Game
             </Text>
             <View style={styles.tabBadge}>
-              <Text style={styles.tabBadgeText}>5 Game</Text>
+              <Text style={styles.tabBadgeText}>6 Game</Text>
             </View>
           </TouchableOpacity>
 
@@ -452,6 +453,37 @@ export default function Home() {
               </View>
             </TouchableOpacity>
 
+            {/* Kartu Game 6: Trading Abal-abal (Binary Option / Binomo) */}
+            <TouchableOpacity
+              style={[styles.gameCard, styles.gameCardGreen]}
+              onPress={() => {
+                if (credits <= 0) {
+                  setShowAdModal(true);
+                } else {
+                  navigate("BinaryOptionGame");
+                }
+              }}
+            >
+              <View style={[styles.gameCardBadge, styles.badgeGreen]}>
+                <Text style={styles.gameCardBadgeText}>JUDI BERKEDOK TRADING</Text>
+              </View>
+              <View style={styles.gameCardContent}>
+                <Text style={styles.gameCardIcon}>📈</Text>
+                <View style={styles.gameCardInfo}>
+                  <Text style={styles.gameCardTitle}>6. Trading Binary Option</Text>
+                  <Text style={styles.gameCardDesc}>
+                    Tebak grafik naik/turun dalam 5-10 detik. Waspadai trik candle jarum detik terakhir yang sengaja dibanting bandar!
+                  </Text>
+                  <View style={styles.gameCardFooter}>
+                    <Text style={styles.gameCardCost}>Biaya: 1-All In (Payout 100%)</Text>
+                    <Text style={[styles.gameCardCta, styles.textGreen]}>
+                      Mulai Trading →
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            </TouchableOpacity>
+
             {/* Baris Tombol Aksi Sekunder */}
             <View style={styles.actionRow}>
               <TouchableOpacity
@@ -538,6 +570,13 @@ export default function Home() {
                     played: stats.gamesPlayed?.suit?.played ?? 0,
                     wins: stats.gamesPlayed?.suit?.wins ?? 0,
                     trick: "Server sudah tahu taruhanmu",
+                  },
+                  {
+                    name: "6. Binary Option",
+                    icon: "📈",
+                    played: stats.gamesPlayed?.binaryOption?.played ?? 0,
+                    wins: stats.gamesPlayed?.binaryOption?.wins ?? 0,
+                    trick: "Jarum detik terakhir dibanting bandar",
                   },
                 ].map((g, idx) => {
                   const rate =
@@ -924,6 +963,9 @@ const styles = StyleSheet.create({
   },
   badgeRose: {
     backgroundColor: "rgba(244, 63, 94, 0.18)",
+  },
+  badgeGreen: {
+    backgroundColor: "rgba(0, 230, 118, 0.18)",
   },
   gameCardBadgeText: {
     color: "#FFFFFF",

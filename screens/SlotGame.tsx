@@ -132,8 +132,8 @@ export default function SlotGame() {
         finalReels: ["🔔", "🔔", "🔔"],
         winner: true,
         isNearMiss: false,
-        reward,
-        title: `🎉 MENANG: 3x ${symbol} (+${reward} Kredit)`,
+        reward: 2,
+        title: "🔔 3x LONCENG EMAS (+2 Kredit)",
         detail:
           "Umpan kemenangan kecil! Bandar memberi sedikit kemenangan agar kamu merasa 'mesin sedang gacor' dan tidak berhenti.",
       };
