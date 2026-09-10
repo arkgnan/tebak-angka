@@ -44,7 +44,7 @@ export default function Login() {
               ⚠️ SIMULASI EDUKASI ANTI-JUDOL
             </Text>
           </View>
-          <Text style={styles.title}>TEBAK ANGKA</Text>
+          <Text style={styles.title}>GAME RUNGKAD</Text>
           <Text style={styles.subtitle}>
             Bongkar Rahasia Mengapa Bandar Selalu Menang!
           </Text>

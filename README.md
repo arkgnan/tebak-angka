@@ -1,7 +1,7 @@
-# 🎮 Tebak Angka — Simulator & Edukasi Manipulasi Algoritma Judi Online
+# 🎮 Rungkad — Simulator & Edukasi Manipulasi Algoritma Judi Online
 
 <p align="center">
-  <img src="./assets/images/icon.png" width="120" height="120" alt="Logo Tebak Angka" style="border-radius: 24px;" />
+  <img src="./assets/images/icon.png" width="120" height="120" alt="Logo Rungkad" style="border-radius: 24px;" />
 </p>
 
 <p align="center">
@@ -38,7 +38,7 @@ Judi online (judol) dirancang secara matematis dan psikologis agar pemain **past
 3. **Efek Near-Miss (Nyaris Menang)**: Roda atau rol slot sengaja dihentikan 1 milimeter di samping Jackpot untuk memicu respons otak yang sama seperti saat menang.
 4. **Ilusi Kontrol (Illusion of Control)**: Pemain merasa bisa mengendalikan kemenangan (seperti tombol tarik saldo di game crash), padahal titik ledak sudah ditetapkan di server sejak tombol mulai diklik.
 
-Aplikasi **Tebak Angka** menghadirkan **5 simulator permainan kasino online** menggunakan kredit virtual tanpa uang sungguhan. Setiap kekalahan dan kemenangan disertai penjelasan ilmiah yang membongkar trik bandar secara transparan.
+Aplikasi **Rungkad** menghadirkan **6 simulator permainan kasino online** menggunakan kredit virtual tanpa uang sungguhan. Setiap kekalahan dan kemenangan disertai penjelasan ilmiah yang membongkar trik bandar secara transparan.
 
 ---
 
