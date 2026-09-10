@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,9 @@ import {
   StyleProp,
   ViewStyle,
   TextStyle,
+  Dimensions,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import LottieView from "lottie-react-native";
@@ -19,6 +22,8 @@ import { SoundEffects } from "../services/soundService";
 import { QUIZ_TOPICS, QuizQuestion, QuizTopic } from "../services/quizData";
 import BannerAdComponent from "../components/BannerAdComponent";
 
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
 export default function QuizScreen() {
   const navigation = useNavigation<StackNavigation>();
   const dispatch = useAppDispatch();
@@ -28,6 +33,24 @@ export default function QuizScreen() {
 
   // 0: Pilihan Topik, 1: Riwayat Quiz
   const [activeTab, setActiveTab] = useState<number>(0);
+  const horizontalScrollRef = useRef<ScrollView>(null);
+
+  const handleTabPress = (index: number) => {
+    SoundEffects.playClick();
+    setActiveTab(index);
+    horizontalScrollRef.current?.scrollTo({
+      x: index * SCREEN_WIDTH,
+      animated: true,
+    });
+  };
+
+  const onMomentumScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const offsetX = e.nativeEvent.contentOffset.x;
+    const page = Math.round(offsetX / SCREEN_WIDTH);
+    if (page !== activeTab) {
+      setActiveTab(page);
+    }
+  };
 
   // State sesi kuis
   const [activeSession, setActiveSession] = useState<{
@@ -434,10 +457,7 @@ export default function QuizScreen() {
       <View style={styles.tabContainer}>
         <TouchableOpacity
           style={[styles.tabBtn, activeTab === 0 && styles.tabBtnActive]}
-          onPress={() => {
-            SoundEffects.playClick();
-            setActiveTab(0);
-          }}
+          onPress={() => handleTabPress(0)}
         >
           <Text
             style={[
@@ -451,10 +471,7 @@ export default function QuizScreen() {
 
         <TouchableOpacity
           style={[styles.tabBtn, activeTab === 1 && styles.tabBtnActive]}
-          onPress={() => {
-            SoundEffects.playClick();
-            setActiveTab(1);
-          }}
+          onPress={() => handleTabPress(1)}
         >
           <Text
             style={[
@@ -467,13 +484,21 @@ export default function QuizScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Pager Horizontal: Mendukung Swipe Kiri & Kanan */}
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+        ref={horizontalScrollRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={onMomentumScrollEnd}
+        style={styles.pager}
       >
-        {activeTab === 0 ? (
-          /* ================= TAB 1: PILIHAN TOPIK ================= */
-          <View>
+        {/* ================= TAB 1: PILIHAN TOPIK ================= */}
+        <View style={{ width: SCREEN_WIDTH }}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
             <View style={styles.introCard}>
               <Text style={styles.introTitle}>
                 🧠 Asah Mindset & Literasi Finansial
@@ -510,13 +535,25 @@ export default function QuizScreen() {
               const tStats = quizStats?.topicStats?.[topic.id];
               const avgGpa = tStats?.averageGradePoint ?? null;
 
-              let gradeLabel = "Belum Dicoba";
+              let gradeLetter = "E";
+              let gradeColor = "#FF5252";
               if (avgGpa !== null) {
-                if (avgGpa >= 3.5) gradeLabel = "Grade A";
-                else if (avgGpa >= 2.75) gradeLabel = "Grade B";
-                else if (avgGpa >= 2.0) gradeLabel = "Grade C";
-                else if (avgGpa >= 1.0) gradeLabel = "Grade D";
-                else gradeLabel = "Grade E";
+                if (avgGpa >= 3.5) {
+                  gradeLetter = "A";
+                  gradeColor = "#00E676";
+                } else if (avgGpa >= 2.75) {
+                  gradeLetter = "B";
+                  gradeColor = "#00E5FF";
+                } else if (avgGpa >= 2.0) {
+                  gradeLetter = "C";
+                  gradeColor = "#FFD700";
+                } else if (avgGpa >= 1.0) {
+                  gradeLetter = "D";
+                  gradeColor = "#FFA726";
+                } else {
+                  gradeLetter = "E";
+                  gradeColor = "#FF5252";
+                }
               }
 
               return (
@@ -536,11 +573,26 @@ export default function QuizScreen() {
                   </View>
                   <View style={styles.topicInfo}>
                     <View style={styles.topicTitleRow}>
-                      <Text style={styles.topicTitle}>{topic.title}</Text>
+                      <Text style={styles.topicTitle} numberOfLines={1}>
+                        {topic.title}
+                      </Text>
                       {avgGpa !== null && (
-                        <View style={styles.gradeBadge}>
-                          <Text style={styles.gradeBadgeText}>
-                            {gradeLabel} ({avgGpa.toFixed(1)})
+                        <View
+                          style={[
+                            styles.gradeCircle,
+                            {
+                              backgroundColor: `${gradeColor}20`,
+                              borderColor: gradeColor,
+                            },
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.gradeCircleText,
+                              { color: gradeColor },
+                            ]}
+                          >
+                            {gradeLetter}
                           </Text>
                         </View>
                       )}
@@ -550,10 +602,15 @@ export default function QuizScreen() {
                 </TouchableOpacity>
               );
             })}
-          </View>
-        ) : (
-          /* ================= TAB 2: RIWAYAT QUIZ ================= */
-          <View>
+          </ScrollView>
+        </View>
+
+        {/* ================= TAB 2: RIWAYAT QUIZ ================= */}
+        <View style={{ width: SCREEN_WIDTH }}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
             {/* Kartu Ringkasan IPK Kumulatif */}
             <View style={styles.gpaCard}>
               <Text style={styles.gpaCardTitle}>INDEKS PRESTASI LITERASI</Text>
@@ -633,8 +690,8 @@ export default function QuizScreen() {
                 );
               })
             )}
-          </View>
-        )}
+          </ScrollView>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -780,6 +837,9 @@ const styles = StyleSheet.create({
   topicInfo: {
     flex: 1,
   },
+  pager: {
+    flex: 1,
+  },
   topicTitleRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -787,9 +847,11 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   topicTitle: {
+    flex: 1,
     color: "#FFFFFF",
     fontSize: 14,
     fontWeight: "800",
+    marginRight: 6,
   },
   topicDesc: {
     color: "#7E97B8",
@@ -802,18 +864,18 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     marginLeft: 8,
   },
-  gradeBadge: {
-    backgroundColor: "#1C2A3D",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: "#2B3C56",
+  gradeCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 6,
   },
-  gradeBadgeText: {
-    color: "#FFD700",
-    fontSize: 10,
-    fontWeight: "800",
+  gradeCircleText: {
+    fontSize: 11,
+    fontWeight: "900",
   },
   gpaCard: {
     backgroundColor: "#131C2D",
