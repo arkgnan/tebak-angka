@@ -345,7 +345,7 @@ export default function Home() {
                 <View style={styles.gameCardInfo}>
                   <Text style={styles.gameCardTitle}>2. Roket Boncos (Crash / Aviator)</Text>
                   <Text style={styles.gameCardDesc}>
-                    Tarik saldo sebelum roket meledak. Bandar memprogram ledakan instan di 1.01x - 1.15x untuk menguras kreditmu!
+                    Tarik saldo sebelum roket meledak. Bandar memprogram ledakan instan untuk menguras kreditmu!
                   </Text>
                   <View style={styles.gameCardFooter}>
                     <Text style={styles.gameCardCost}>Biaya: 1 Kredit (Tarik Untung)</Text>

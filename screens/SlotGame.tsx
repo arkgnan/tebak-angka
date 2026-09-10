@@ -95,16 +95,17 @@ export default function SlotGame() {
     title: string;
     detail: string;
   } => {
-    // PELUANG SANGAT KECIL (HOUSE EDGE EKSTREM SLOT ONLINE):
-    // 0.5% Jackpot 777 (7️⃣ 7️⃣ 7️⃣) -> +10 Kredit
-    // 3.5% Jackpot Permata/Lonceng (💎💎💎 atau 🔔🔔🔔) -> +2 atau +3 Kredit
-    // 6.0% Menang Kecil Ceri (🍒 🍒 [Acak]) -> +1 Kredit (Balik Modal)
-    // 55.0% Trik 'Near-Miss Maxwin' (7️⃣ 7️⃣ 💣 atau 7️⃣ 7️⃣ 🍋)
-    // 35.0% Zonk Rungkad Biasa (Campuran acak)
+    // RASIO PROBABILITAS HASIL SLOT:
+    // 2.0% Jackpot 777 (7️⃣ 7️⃣ 7️⃣) -> +10 Kredit
+    // 5.0% Permata Kembar (💎 💎 💎) -> +3 Kredit
+    // 7.0% Lonceng Emas (🔔 🔔 🔔) -> +2 Kredit
+    // 9.0% Balik Modal Ceri (🍒 🍒 [Acak]) -> +1 Kredit
+    // 45.0% Trik 'Near-Miss Maxwin' (7️⃣ 7️⃣ 💣 atau 7️⃣ 7️⃣ 🍋) -> 0 Kredit
+    // 32.0% Zonk Rungkad Biasa (Campuran acak) -> 0 Kredit
     const roll = Math.random();
 
-    if (roll < 0.005) {
-      // 0.5% JACKPOT 777
+    if (roll < 0.02) {
+      // 2% JACKPOT 777 (0.00 - 0.02)
       return {
         finalReels: ["7️⃣", "7️⃣", "7️⃣"],
         winner: true,
@@ -112,15 +113,23 @@ export default function SlotGame() {
         reward: 10,
         title: "👑 MAXWIN JACKPOT 777! (+10 Kredit)",
         detail:
-          "Luar biasa langka! Peluang ini hanya 0.5% (1 banding 200 putaran). Bandar hanya memberi ini sesekali untuk membuat tangkapan layar promosi!",
+          "Luar biasa langka! Peluang ini 2.0% (1 banding 50 putaran). Bandar sesekali memberi jackpot untuk memicu dopamin dan membuatmu terus ketagihan!",
       };
-    } else if (roll < 0.04) {
-      // 3.5% Menang Lonceng / Diamond
-      const isDiamond = Math.random() < 0.5;
-      const symbol = isDiamond ? "💎" : "🔔";
-      const reward = isDiamond ? 3 : 2;
+    } else if (roll < 0.07) {
+      // 5% PERMATA KEMBAR (0.02 - 0.07)
       return {
-        finalReels: [symbol, symbol, symbol],
+        finalReels: ["💎", "💎", "💎"],
+        winner: true,
+        isNearMiss: false,
+        reward: 3,
+        title: "💎 KEMBAR 3 PERMATA (+3 Kredit)",
+        detail:
+          "Umpan kemenangan sedang! Peluang 5.0% ini dirancang agar pemain merasa 'mesin sedang gacor' dan terdorong menaikkan taruhan.",
+      };
+    } else if (roll < 0.14) {
+      // 7% LONCENG EMAS (0.07 - 0.14)
+      return {
+        finalReels: ["🔔", "🔔", "🔔"],
         winner: true,
         isNearMiss: false,
         reward,
@@ -128,10 +137,11 @@ export default function SlotGame() {
         detail:
           "Umpan kemenangan kecil! Bandar memberi sedikit kemenangan agar kamu merasa 'mesin sedang gacor' dan tidak berhenti.",
       };
-    } else if (roll < 0.1) {
-      // 6.0% Balik modal
+    } else if (roll < 0.23) {
+      // 9% BALIK MODAL CERI (0.14 - 0.23)
+      const thirdSymbol = Math.random() < 0.5 ? "🍋" : "💣";
       return {
-        finalReels: ["🍒", "🍒", "🍋"],
+        finalReels: ["🍒", "🍒", thirdSymbol],
         winner: false,
         isNearMiss: false,
         reward: 1,
@@ -139,8 +149,8 @@ export default function SlotGame() {
         detail:
           "Kreditmu kembali utuh. Ini teknik bandar mengulur waktu agar saldo pemain naik-turun seimbang di awal sebelum akhirnya ludes!",
       };
-    } else if (roll < 0.65) {
-      // 55.0% EFEK NEAR-MISS 'NYARIS 777' (Scatter Bayangan)
+    } else if (roll < 0.68) {
+      // 45% EFEK NEAR-MISS 'NYARIS 777' (0.23 - 0.68)
       const missSymbol = Math.random() < 0.5 ? "💣" : "🍋";
       return {
         finalReels: ["7️⃣", "7️⃣", missSymbol],
@@ -152,7 +162,7 @@ export default function SlotGame() {
           "Reel 1 & 2 keluar 7️⃣, tapi reel ke-3 sengaja dihentikan pada bom/lemon! Otakmu dibanjiri ilusi seolah 'sedikit lagi jackpot', padahal algoritma sudah menguncinya kalah!",
       };
     } else {
-      // 35.0% Rungkad Biasa
+      // 32% RUNGKAD BIASA (0.68 - 1.00)
       const zonks: [string, string, string][] = [
         ["💣", "🍋", "🍒"],
         ["🍋", "💣", "🔔"],
@@ -402,8 +412,8 @@ export default function SlotGame() {
               lastResult.winner
                 ? styles.resultWon
                 : lastResult.isNearMiss
-                ? styles.resultNearMiss
-                : styles.resultLoss,
+                  ? styles.resultNearMiss
+                  : styles.resultLoss,
             ]}
           >
             <Text
@@ -412,8 +422,8 @@ export default function SlotGame() {
                 lastResult.winner
                   ? { color: "#00E676" }
                   : lastResult.isNearMiss
-                  ? { color: "#FFB74D" }
-                  : { color: "#FF5252" },
+                    ? { color: "#FFB74D" }
+                    : { color: "#FF5252" },
               ]}
             >
               {lastResult.title}
@@ -425,11 +435,12 @@ export default function SlotGame() {
         {/* Tabel Skema Hadiah Slot */}
         <View style={styles.paytableCard}>
           <Text style={styles.paytableTitle}>🏆 TABEL BAYARAN (BIAYA: 1 KREDIT):</Text>
-          <Text style={styles.paytableRow}>• 7️⃣ 7️⃣ 7️⃣ : MAXWIN JACKPOT (+10 Kredit) [0.5%]</Text>
-          <Text style={styles.paytableRow}>• 💎 💎 💎 : Permata Kembar (+3 Kredit) [1.5%]</Text>
-          <Text style={styles.paytableRow}>• 🔔 🔔 🔔 : Lonceng Emas (+2 Kredit) [2.0%]</Text>
-          <Text style={styles.paytableRow}>• 🍒 🍒 [Acak] : Balik Modal (+1 Kredit) [6.0%]</Text>
-          <Text style={styles.paytableRow}>• Selain Itu : Rungkad / Zonk 100% [90.0%]</Text>
+          <Text style={styles.paytableRow}>• 7️⃣ 7️⃣ 7️⃣ : MAXWIN JACKPOT (+10 Kredit)</Text>
+          <Text style={styles.paytableRow}>• 💎 💎 💎 : Permata Kembar (+3 Kredit)</Text>
+          <Text style={styles.paytableRow}>• 🔔 🔔 🔔 : Lonceng Emas (+2 Kredit)</Text>
+          <Text style={styles.paytableRow}>• 🍒 🍒 [Acak] : Balik Modal (+1 Kredit)</Text>
+          <Text style={styles.paytableRow}>• 😱 Trik 'Near-Miss Maxwin' (Zonk)</Text>
+          <Text style={styles.paytableRow}>• 💀 Zonk Rungkad Biasa (Campuran)</Text>
         </View>
 
         {/* Tombol Spin */}
@@ -439,8 +450,8 @@ export default function SlotGame() {
             credits === 0
               ? styles.btnTopUp
               : isSpinning
-              ? styles.btnDisabled
-              : null,
+                ? styles.btnDisabled
+                : null,
           ]}
           onPress={handleSpin}
           disabled={isSpinning}
@@ -454,8 +465,8 @@ export default function SlotGame() {
             {isSpinning
               ? "⚡ MESIN SEDANG BERPUTAR..."
               : credits > 0
-              ? "🎰 PUTAR SLOT (-1 Kredit)"
-              : "+ Top Up Kredit (Tonton Iklan)"}
+                ? "🎰 PUTAR SLOT (-1 Kredit)"
+                : "+ Top Up Kredit (Tonton Iklan)"}
           </Text>
         </TouchableOpacity>
 
