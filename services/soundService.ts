@@ -10,6 +10,11 @@ const SOUND_FILES = {
   rocketFly: require("../assets/sounds/rocket_fly.wav"),
   explosion: require("../assets/sounds/explosion.wav"),
   clash: require("../assets/sounds/clash.wav"),
+  wheelSpin: require("../assets/sounds/wheel_spin.wav"),
+  slotLever: require("../assets/sounds/slot_lever.wav"),
+  slotReel: require("../assets/sounds/slot_reel.wav"),
+  slotStop: require("../assets/sounds/slot_stop.wav"),
+  tension: require("../assets/sounds/tension.wav"),
 };
 
 type SoundKey = keyof typeof SOUND_FILES;
@@ -84,7 +89,21 @@ async function playSound(key: SoundKey, volume = 0.85) {
 }
 
 /**
- * Service Efek Suara & Getar (Haptics) untuk Seluruh 5 Game
+ * Hentikan sound effect tertentu jika sedang diputar
+ */
+async function stopSound(key: SoundKey) {
+  try {
+    const sound = soundObjects[key];
+    if (sound) {
+      await sound.stopAsync();
+    }
+  } catch (e) {
+    // Ignore error
+  }
+}
+
+/**
+ * Service Efek Suara & Getar (Haptics) untuk Seluruh Game
  */
 export const SoundEffects = {
   /**
@@ -149,5 +168,58 @@ export const SoundEffects = {
   playClash() {
     Vibration.vibrate([0, 50, 30, 70]);
     playSound("clash", 0.85);
+  },
+
+  /**
+   * Efek putaran roda berkecepatan tinggi yang melambat realistis (Wheel Game)
+   */
+  playWheelSpin() {
+    Vibration.vibrate([0, 30, 50, 30, 80, 25, 120, 20]);
+    playSound("wheelSpin", 0.9);
+  },
+
+  /**
+   * Hentikan suara putaran roda jika selesai lebih cepat
+   */
+  stopWheelSpin() {
+    stopSound("wheelSpin");
+  },
+
+  /**
+   * Efek hentakan tuas mekanik mesin slot (Slot Game)
+   */
+  playSlotLever() {
+    Vibration.vibrate([0, 50, 40, 60]);
+    playSound("slotLever", 0.95);
+  },
+
+  /**
+   * Efek desingan motor reel berputar (Slot Game)
+   */
+  playSlotReel() {
+    playSound("slotReel", 0.8);
+  },
+
+  /**
+   * Efek kunci / kait reel mekanik berhenti (Slot Game)
+   */
+  playSlotStop() {
+    Vibration.vibrate(30);
+    playSound("slotStop", 0.85);
+  },
+
+  /**
+   * Efek ketegangan / detak jantung saat reel 1 & 2 kembar 7️⃣ (Near-Miss Suspense)
+   */
+  playTension() {
+    Vibration.vibrate([0, 80, 100, 80]);
+    playSound("tension", 0.95);
+  },
+
+  /**
+   * Hentikan suara desingan slot reel
+   */
+  stopSlotReel() {
+    stopSound("slotReel");
   },
 };

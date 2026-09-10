@@ -13,12 +13,14 @@ import CrashGame from "./screens/CrashGame";
 import WheelGame from "./screens/WheelGame";
 import SlotGame from "./screens/SlotGame";
 import SuitGame from "./screens/SuitGame";
+import QuizScreen from "./screens/QuizScreen";
 
 // Catatan: Pada React Native Android, Firebase diinisialisasi secara otomatis
 // melalui file google-services.json saat aplikasi pertama kali dijalankan.
 
 import { initializeMobileAds } from "./services/admobService";
 import { initAudio } from "./services/soundService";
+import { initDailyNotification } from "./services/notificationService";
 import { useAppSelector } from "./hooks/useRedux";
 
 export type RootStackParamList = {
@@ -29,11 +31,18 @@ export type RootStackParamList = {
   WheelGame: undefined;
   SlotGame: undefined;
   SuitGame: undefined;
+  QuizScreen: undefined;
   Result: {
     winner: boolean;
-    result: number;
-    baseNumber: number;
-    choice: "higher" | "lower";
+    gameType?: "higher-lower" | "suit";
+    result?: number;
+    baseNumber?: number;
+    choice?: "higher" | "lower";
+    playerChoice?: "rock" | "paper" | "scissors";
+    bandarChoice?: "rock" | "paper" | "scissors";
+    isDraw?: boolean;
+    rewardCredits?: number;
+    title?: string;
     explanation?: string;
   };
 };
@@ -73,6 +82,7 @@ const MainApp = () => {
         <Stack.Screen name="WheelGame" component={WheelGame} />
         <Stack.Screen name="SlotGame" component={SlotGame} />
         <Stack.Screen name="SuitGame" component={SuitGame} />
+        <Stack.Screen name="QuizScreen" component={QuizScreen} />
         <Stack.Screen
           name="Result"
           component={Result}
@@ -105,6 +115,9 @@ export default function App() {
 
     // Inisialisasi dan preload efek suara
     initAudio();
+
+    // Inisialisasi pengingat edukasi harian (19:00 WIB)
+    initDailyNotification();
   }, []);
 
   return (

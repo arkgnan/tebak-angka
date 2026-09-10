@@ -171,13 +171,8 @@ export default function WheelGame() {
     setSelectedSegment(null);
     setIsNearMiss(false);
 
-    // Suara ratchet tick saat roda berputar
-    let tickCount = 0;
-    const tickInterval = setInterval(() => {
-      tickCount++;
-      SoundEffects.playSpinTick();
-      if (tickCount >= 16) clearInterval(tickInterval);
-    }, 220);
+    // Suara putaran roda realistis (whoosh launch & decelerating ratchet ticks)
+    SoundEffects.playWheelSpin();
 
     const { targetIndex, nearMiss } = determineOutcome();
     const segmentAngle = 360 / SEGMENTS.length; // 45 derajat per segmen
@@ -202,6 +197,7 @@ export default function WheelGame() {
       easing: Easing.bezier(0.2, 0.8, 0.25, 1),
       useNativeDriver: true,
     }).start(() => {
+      SoundEffects.stopWheelSpin();
       setIsSpinning(false);
       currentRotation.current = nextTotalRotation;
       const resultSegment = SEGMENTS[targetIndex];

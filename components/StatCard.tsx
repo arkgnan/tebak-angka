@@ -5,10 +5,14 @@ interface StatCardProps {
   credits: number;
   totalPlayed: number;
   totalWins: number;
-  totalLosses: number;
+  totalLosses?: number;
   moneyLost: number;
   totalAdsWatched: number;
+  nearMissCount?: number;
+  moneySaved?: number;
+  cumulativeGpa?: number;
   onTopUpPress: () => void;
+  onQuizPress?: () => void;
 }
 
 export default function StatCard({
@@ -17,11 +21,13 @@ export default function StatCard({
   totalWins,
   moneyLost,
   totalAdsWatched,
+  nearMissCount = 0,
+  cumulativeGpa = 0,
   onTopUpPress,
+  onQuizPress,
 }: StatCardProps) {
   const winRate =
     totalPlayed > 0 ? Math.round((totalWins / totalPlayed) * 100) : 0;
-
   return (
     <View style={styles.container}>
       {/* Kartu Kredit Utama */}
@@ -165,3 +171,4 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 });
+

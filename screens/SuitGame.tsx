@@ -50,7 +50,7 @@ const CHOICES: ChoiceOption[] = [
 ];
 
 export default function SuitGame() {
-  const { goBack } = useNavigation<StackNavigation>();
+  const { goBack, navigate } = useNavigation<StackNavigation>();
   const dispatch = useAppDispatch();
   const { credits } = useAppSelector((state) => state.game);
 
@@ -227,6 +227,20 @@ export default function SuitGame() {
           explanation: outcome.explanation,
         })
       );
+
+      // Navigasi ke Result screen setelah reveal 600ms
+      setTimeout(() => {
+        navigate("Result", {
+          winner: outcome.winner,
+          gameType: "suit",
+          playerChoice,
+          bandarChoice: outcome.bandarChoice,
+          isDraw: outcome.isDraw,
+          rewardCredits: outcome.rewardCredits,
+          title: outcome.title,
+          explanation: outcome.explanation,
+        });
+      }, 600);
     }, 1600);
   };
 

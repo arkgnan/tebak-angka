@@ -47,7 +47,7 @@ export default function Home() {
   const dispatch = useAppDispatch();
 
   const { user } = useAppSelector((state) => state.auth);
-  const { credits, stats, history } = useAppSelector((state) => state.game);
+  const { credits, stats, history, quizStats } = useAppSelector((state) => state.game);
 
   const [randomFact] = useState<string>(
     () => SCIENTIFIC_FACTS[Math.floor(Math.random() * SCIENTIFIC_FACTS.length)]
@@ -244,6 +244,36 @@ export default function Home() {
                 {randomFact}
               </Text>
               <Text style={styles.bannerCta}>Bongkar Trik Bandar Selengkapnya →</Text>
+            </TouchableOpacity>
+
+            {/* Kartu Fitur Kuis Literasi Keuangan */}
+            <TouchableOpacity
+              style={styles.quizCard}
+              onPress={() => navigate("QuizScreen")}
+              activeOpacity={0.85}
+            >
+              <View style={styles.quizBadgeRow}>
+                <View style={styles.quizTypeBadge}>
+                  <Text style={styles.quizTypeBadgeText}>🧠 KUIS LITERASI</Text>
+                </View>
+                <View style={styles.quizRewardBadge}>
+                  <Text style={styles.quizRewardBadgeText}>🎁 BONUS +1 KREDIT JIKA GRADE A</Text>
+                </View>
+              </View>
+              <View style={styles.quizContent}>
+                <View style={styles.quizIconContainer}>
+                  <Text style={styles.quizIcon}>🎓</Text>
+                </View>
+                <View style={styles.quizInfo}>
+                  <Text style={styles.quizTitle}>Kuis Mindset & Literasi Finansial</Text>
+                  <Text style={styles.quizDesc}>
+                    Jawab 4 soal seputar psikologi dopamin, bahaya pinjol, rumus house edge & dana darurat. Perbaiki pola pikir untuk hidup lebih baik!
+                  </Text>
+                  <View style={styles.quizCtaPill}>
+                    <Text style={styles.quizCtaTextSmall}>Buka Kuis & Cek Level Pemahamanmu →</Text>
+                  </View>
+                </View>
+              </View>
             </TouchableOpacity>
 
             {/* Sub-header Pilihan Game */}
@@ -448,8 +478,97 @@ export default function Home() {
               totalLosses={stats.totalLosses}
               moneyLost={stats.simulatedMoneyLost}
               totalAdsWatched={stats.totalAdsWatched}
+              nearMissCount={stats.nearMissCount ?? 0}
+              cumulativeGpa={quizStats?.cumulativeGpa ?? 0}
               onTopUpPress={() => setShowAdModal(true)}
+              onQuizPress={() => navigate("QuizScreen")}
             />
+
+            {/* Tabel Analisis Peluang per Game (House Edge) */}
+            <View style={styles.breakdownCard}>
+              <View style={styles.breakdownHeaderRow}>
+                <Text style={styles.breakdownTitle}>📊 ANALISIS PELUANG PER GAME</Text>
+                <Text style={styles.breakdownSubtitle}>
+                  Bukti matematis bahwa setiap game dirancang pasti merugikan pemain
+                </Text>
+              </View>
+
+              <View style={styles.gameStatTable}>
+                {[
+                  {
+                    name: "1. Tebak Angka",
+                    icon: "🎯",
+                    played: stats.gamesPlayed?.higherLower?.played ?? 0,
+                    wins: stats.gamesPlayed?.higherLower?.wins ?? 0,
+                    trick: "Kunci kalah setelah 1x menang",
+                  },
+                  {
+                    name: "2. Roket Boncos",
+                    icon: "🚀",
+                    played: stats.gamesPlayed?.crash?.played ?? 0,
+                    wins: stats.gamesPlayed?.crash?.wins ?? 0,
+                    trick: "Ledakan instan 1.01x - 1.15x",
+                  },
+                  {
+                    name: "3. Roda Putar",
+                    icon: "🎡",
+                    played: stats.gamesPlayed?.wheel?.played ?? 0,
+                    wins: stats.gamesPlayed?.wheel?.wins ?? 0,
+                    trick: "Near-Miss 1mm samping jackpot",
+                  },
+                  {
+                    name: "4. Slot 777",
+                    icon: "🎰",
+                    played: stats.gamesPlayed?.slot?.played ?? 0,
+                    wins: stats.gamesPlayed?.slot?.wins ?? 0,
+                    trick: "Scatter bayangan 7-7-bom",
+                  },
+                  {
+                    name: "5. Suit Bandar",
+                    icon: "✌️",
+                    played: stats.gamesPlayed?.suit?.played ?? 0,
+                    wins: stats.gamesPlayed?.suit?.wins ?? 0,
+                    trick: "Server sudah tahu taruhanmu",
+                  },
+                ].map((g, idx) => {
+                  const rate =
+                    g.played > 0 ? Math.round((g.wins / g.played) * 100) : 0;
+                  return (
+                    <View key={idx} style={styles.gameStatRow}>
+                      <View style={styles.gameStatLeft}>
+                        <Text style={styles.gameStatName}>
+                          {g.icon} {g.name}
+                        </Text>
+                        <Text style={styles.gameStatTrick}>{g.trick}</Text>
+                      </View>
+                      <View style={styles.gameStatRight}>
+                        <Text style={styles.gameStatPlayed}>
+                          {g.played}x Main ({g.wins} Menang)
+                        </Text>
+                        <Text
+                          style={[
+                            styles.gameStatRate,
+                            { color: rate < 25 ? "#FF5252" : "#FFD700" },
+                          ]}
+                        >
+                          Win: {rate}%
+                        </Text>
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+
+              <TouchableOpacity
+                style={styles.quizCtaBtn}
+                onPress={() => navigate("QuizScreen")}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.quizCtaText}>
+                  🎓 Tingkatkan Literasi Finansial Lewat Kuis →
+                </Text>
+              </TouchableOpacity>
+            </View>
 
             {/* Riwayat Putaran Terakhir */}
             <View style={styles.historyCard}>
@@ -989,5 +1108,177 @@ const styles = StyleSheet.create({
     color: "#E2C6C6",
     fontSize: 11,
     lineHeight: 16,
+  },
+  quizCard: {
+    backgroundColor: "#16132B",
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 1.5,
+    borderColor: "#7C4DFF",
+    marginBottom: 18,
+    shadowColor: "#7C4DFF",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  quizBadgeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 10,
+    flexWrap: "wrap",
+  },
+  quizTypeBadge: {
+    backgroundColor: "rgba(124, 77, 255, 0.25)",
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#7C4DFF",
+  },
+  quizTypeBadgeText: {
+    color: "#D1C4E9",
+    fontSize: 10,
+    fontWeight: "900",
+    letterSpacing: 0.5,
+  },
+  quizRewardBadge: {
+    backgroundColor: "rgba(255, 215, 0, 0.15)",
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#FFD700",
+  },
+  quizRewardBadgeText: {
+    color: "#FFD700",
+    fontSize: 10,
+    fontWeight: "900",
+  },
+  quizContent: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  quizIconContainer: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    backgroundColor: "rgba(124, 77, 255, 0.2)",
+    borderWidth: 1,
+    borderColor: "rgba(124, 77, 255, 0.5)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+    marginTop: 2,
+  },
+  quizIcon: {
+    fontSize: 24,
+  },
+  quizInfo: {
+    flex: 1,
+  },
+  quizTitle: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "900",
+    marginBottom: 4,
+  },
+  quizDesc: {
+    color: "#BAC9DC",
+    fontSize: 11,
+    lineHeight: 16,
+    marginBottom: 8,
+  },
+  quizCtaPill: {
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(124, 77, 255, 0.2)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: "rgba(124, 77, 255, 0.6)",
+  },
+  quizCtaTextSmall: {
+    color: "#B388FF",
+    fontSize: 11,
+    fontWeight: "800",
+  },
+  breakdownCard: {
+    backgroundColor: "#131C2D",
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#1E2B42",
+    marginBottom: 16,
+  },
+  breakdownHeaderRow: {
+    marginBottom: 12,
+  },
+  breakdownTitle: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "900",
+    letterSpacing: 0.5,
+    marginBottom: 2,
+  },
+  breakdownSubtitle: {
+    color: "#7E97B8",
+    fontSize: 11,
+    lineHeight: 15,
+  },
+  gameStatTable: {
+    gap: 8,
+    marginBottom: 12,
+  },
+  gameStatRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: "#101725",
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#1B273A",
+  },
+  gameStatLeft: {
+    flex: 1,
+    marginRight: 8,
+  },
+  gameStatName: {
+    color: "#FFFFFF",
+    fontSize: 12,
+    fontWeight: "800",
+    marginBottom: 2,
+  },
+  gameStatTrick: {
+    color: "#FF8A80",
+    fontSize: 10,
+  },
+  gameStatRight: {
+    alignItems: "flex-end",
+  },
+  gameStatPlayed: {
+    color: "#7E97B8",
+    fontSize: 10,
+    fontWeight: "600",
+  },
+  gameStatRate: {
+    fontSize: 12,
+    fontWeight: "800",
+    marginTop: 2,
+  },
+  quizCtaBtn: {
+    backgroundColor: "rgba(0, 229, 255, 0.1)",
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#00E5FF",
+  },
+  quizCtaText: {
+    color: "#00E5FF",
+    fontSize: 12,
+    fontWeight: "800",
   },
 });

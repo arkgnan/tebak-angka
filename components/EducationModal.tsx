@@ -36,6 +36,7 @@ export default function EducationModal({
 
           <ScrollView
             style={styles.scroll}
+            contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
           >
             <View style={styles.section}>
@@ -123,14 +124,15 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     width: "100%",
     maxWidth: 440,
-    maxHeight: "85%",
-    padding: 22,
+    height: "82%",
+    maxHeight: "88%",
+    padding: 20,
     borderWidth: 1,
     borderColor: "#283954",
   },
   header: {
     alignItems: "center",
-    marginBottom: 14,
+    marginBottom: 12,
   },
   badge: {
     backgroundColor: "#00E5FF",
@@ -155,7 +157,11 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   scroll: {
-    marginVertical: 10,
+    flex: 1,
+    marginVertical: 8,
+  },
+  scrollContent: {
+    paddingBottom: 24,
   },
   section: {
     backgroundColor: "#0E1524",

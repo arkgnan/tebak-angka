@@ -13,20 +13,27 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { useAppSelector } from "../hooks/useRedux";
 import ShareModal from "../components/ShareModal";
 import AdRewardModal from "../components/AdRewardModal";
+import BannerAdComponent from "../components/BannerAdComponent";
 import { SoundEffects } from "../services/soundService";
 
 export default function Result() {
   const route = useRoute();
   const { navigate } = useNavigation<StackNavigation>();
 
-  const { winner, result, baseNumber, choice, explanation } =
-    (route.params as {
-      winner: boolean;
-      result: number;
-      baseNumber?: number;
-      choice?: "higher" | "lower";
-      explanation?: string;
-    }) || { winner: false, result: 0 };
+  const params = (route.params as any) || { winner: false, result: 0 };
+  const {
+    winner,
+    gameType = "higher-lower",
+    result,
+    baseNumber,
+    choice,
+    playerChoice,
+    bandarChoice,
+    isDraw,
+    rewardCredits,
+    title,
+    explanation,
+  } = params;
 
   const { credits, stats } = useAppSelector((state) => state.game);
 
@@ -37,6 +44,8 @@ export default function Result() {
     // Putar sound effect sesuai hasil menang/kalah
     if (winner) {
       SoundEffects.playWin();
+    } else if (isDraw) {
+      SoundEffects.playClick();
     } else {
       SoundEffects.playLoss();
     }
@@ -50,7 +59,7 @@ export default function Result() {
       backAction,
     );
     return () => backHandler.remove();
-  }, [navigate, winner]);
+  }, [navigate, winner, isDraw]);
 
   const handlePlayAgain = () => {
     SoundEffects.playClick();
@@ -58,7 +67,11 @@ export default function Result() {
       setShowAdModal(true);
       return;
     }
-    navigate("Game");
+    if (gameType === "suit") {
+      navigate("SuitGame");
+    } else {
+      navigate("Game");
+    }
   };
 
   const winRate =
@@ -76,15 +89,23 @@ export default function Result() {
         <View
           style={[
             styles.statusBanner,
-            winner ? styles.bannerWin : styles.bannerLoss,
+            winner
+              ? styles.bannerWin
+              : isDraw
+              ? styles.bannerDraw
+              : styles.bannerLoss,
           ]}
         >
           <Text style={styles.statusBannerText}>
-            {winner ? "🎉 KAMU DIBERI MENANG!" : "💥 KAMU RUNGKAD / KALAH!"}
+            {winner
+              ? "🎉 KAMU DIBERI MENANG (UMPAN)!"
+              : isDraw
+              ? "🤝 HASIL SERI (BALIK MODAL)"
+              : "💥 KAMU RUNGKAD / KALAH!"}
           </Text>
         </View>
 
-        {/* Animasi Lottie */}
+        {/* Animasi Lottie Trophy / Sad */}
         <View style={styles.lottieWrapper}>
           {winner ? (
             <LottieView
@@ -103,60 +124,120 @@ export default function Result() {
           )}
         </View>
 
-        {/* Kartu Perbandingan Angka */}
-        <View style={styles.scoreCard}>
-          <Text style={styles.scoreTitle}>REKAP HASIL PUTARAN</Text>
-          <View style={styles.scoreGrid}>
-            <View style={styles.scoreCol}>
-              <Text style={styles.scoreLabel}>Angka Awal</Text>
-              <Text style={styles.scoreNumber}>{baseNumber ?? "-"}</Text>
-            </View>
+        {/* Kartu Perbandingan (Suit vs Tebak Angka) */}
+        {gameType === "suit" ? (
+          <View style={styles.scoreCard}>
+            <Text style={styles.scoreTitle}>REKAP PERTARUNGAN SUIT</Text>
+            <View style={styles.scoreGrid}>
+              <View style={styles.scoreCol}>
+                <Text style={styles.scoreLabel}>Pilihanmu</Text>
+                <Text style={styles.scoreSuitText}>
+                  {playerChoice === "rock"
+                    ? "✊ Batu"
+                    : playerChoice === "scissors"
+                    ? "✌️ Gunting"
+                    : "✋ Kertas"}
+                </Text>
+              </View>
 
-            <View style={styles.scoreColDivider} />
+              <View style={styles.scoreColDivider} />
 
-            <View style={styles.scoreCol}>
-              <Text style={styles.scoreLabel}>Tebakanmu</Text>
-              <Text
-                style={[
-                  styles.scoreChoice,
-                  choice === "higher" ? styles.textHigher : styles.textLower,
-                ]}
-              >
-                {choice === "higher" ? "▲ Lebih Tinggi" : "▼ Lebih Rendah"}
-              </Text>
-            </View>
+              <View style={styles.scoreCol}>
+                <Text style={styles.scoreLabel}>Lawan (Server)</Text>
+                <Text
+                  style={[
+                    styles.scoreSuitText,
+                    winner ? styles.textWin : isDraw ? styles.textDraw : styles.textLoss,
+                  ]}
+                >
+                  {bandarChoice === "rock"
+                    ? "✊ Batu"
+                    : bandarChoice === "scissors"
+                    ? "✌️ Gunting"
+                    : "✋ Kertas"}
+                </Text>
+              </View>
 
-            <View style={styles.scoreColDivider} />
+              <View style={styles.scoreColDivider} />
 
-            <View style={styles.scoreCol}>
-              <Text style={styles.scoreLabel}>Keluar Bandar</Text>
-              <Text
-                style={[
-                  styles.scoreNumber,
-                  winner ? styles.textWin : styles.textLoss,
-                ]}
-              >
-                {result}
-              </Text>
+              <View style={styles.scoreCol}>
+                <Text style={styles.scoreLabel}>Hasil Putaran</Text>
+                <Text
+                  style={[
+                    styles.scoreNumber,
+                    winner ? styles.textWin : isDraw ? styles.textDraw : styles.textLoss,
+                  ]}
+                >
+                  {winner ? "+2 Kredit" : isDraw ? "Balik Modal" : "-1 Kredit"}
+                </Text>
+              </View>
             </View>
           </View>
-        </View>
+        ) : (
+          <View style={styles.scoreCard}>
+            <Text style={styles.scoreTitle}>REKAP HASIL PUTARAN</Text>
+            <View style={styles.scoreGrid}>
+              <View style={styles.scoreCol}>
+                <Text style={styles.scoreLabel}>Angka Awal</Text>
+                <Text style={styles.scoreNumber}>{baseNumber ?? "-"}</Text>
+              </View>
+
+              <View style={styles.scoreColDivider} />
+
+              <View style={styles.scoreCol}>
+                <Text style={styles.scoreLabel}>Tebakanmu</Text>
+                <Text
+                  style={[
+                    styles.scoreChoice,
+                    choice === "higher" ? styles.textHigher : styles.textLower,
+                  ]}
+                >
+                  {choice === "higher" ? "▲ Lebih Tinggi" : "▼ Lebih Rendah"}
+                </Text>
+              </View>
+
+              <View style={styles.scoreColDivider} />
+
+              <View style={styles.scoreCol}>
+                <Text style={styles.scoreLabel}>Keluar Bandar</Text>
+                <Text
+                  style={[
+                    styles.scoreNumber,
+                    winner ? styles.textWin : styles.textLoss,
+                  ]}
+                >
+                  {result ?? "-"}
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
 
         {/* Kartu Edukasi Psikologis Bandar */}
         <View
           style={[
             styles.explanationCard,
-            winner ? styles.borderWin : styles.borderLoss,
+            winner
+              ? styles.borderWin
+              : isDraw
+              ? styles.borderDraw
+              : styles.borderLoss,
           ]}
         >
           <Text
             style={[
               styles.explanationHeader,
-              winner ? styles.textWin : styles.textLoss,
+              winner
+                ? styles.textWin
+                : isDraw
+                ? styles.textDraw
+                : styles.textLoss,
             ]}
           >
             {winner
               ? "🧠 PSIKOLOGI UMPAN BANDAR (BAITING):"
+              : isDraw
+              ? "🤝 TEKNIK MENGIKAT WAKTU (DRAW TRICK):"
               : "📉 REALITAS MATEMATIKA JUDI ONLINE:"}
           </Text>
           <Text style={styles.explanationText}>
@@ -186,7 +267,11 @@ export default function Result() {
             onPress={handlePlayAgain}
           >
             <Text style={styles.btnPrimaryText}>
-              {credits > 0 ? "Main Putaran Berikutnya (-1)" : "+ Top Up Kredit (Tonton Iklan)"}
+              {credits > 0
+                ? gameType === "suit"
+                  ? "Adu Suit Lagi (-1 Kredit)"
+                  : "Main Putaran Berikutnya (-1)"
+                : "+ Top Up Kredit (Tonton Iklan)"}
             </Text>
           </TouchableOpacity>
 
@@ -207,6 +292,9 @@ export default function Result() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Banner Ad di bagian bawah layar Result */}
+      <BannerAdComponent position="bottom" />
 
       {/* Modal Berbagi dan Iklan */}
       <ShareModal
@@ -245,6 +333,11 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 230, 118, 0.15)",
     borderWidth: 1,
     borderColor: "#00E676",
+  },
+  bannerDraw: {
+    backgroundColor: "rgba(0, 229, 255, 0.15)",
+    borderWidth: 1,
+    borderColor: "#00E5FF",
   },
   bannerLoss: {
     backgroundColor: "rgba(255, 82, 82, 0.15)",
@@ -322,8 +415,17 @@ const styles = StyleSheet.create({
   textWin: {
     color: "#00E676",
   },
+  textDraw: {
+    color: "#00E5FF",
+  },
   textLoss: {
     color: "#FF5252",
+  },
+  scoreSuitText: {
+    fontSize: 14,
+    fontWeight: "900",
+    color: "#FFFFFF",
+    textAlign: "center",
   },
   explanationCard: {
     backgroundColor: "#141C2B",
@@ -335,6 +437,9 @@ const styles = StyleSheet.create({
   },
   borderWin: {
     borderColor: "#00E676",
+  },
+  borderDraw: {
+    borderColor: "#00E5FF",
   },
   borderLoss: {
     borderColor: "#FF5252",

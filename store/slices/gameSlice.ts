@@ -19,6 +19,18 @@ export interface GameRoundResult {
   timestamp: number;
 }
 
+export interface QuizSessionResult {
+  id: string;
+  topicId: string;
+  topicTitle: string;
+  correctCount: number;
+  totalQuestions: number; // 4
+  grade: "A" | "B" | "C" | "D" | "E";
+  gradePoint: number; // 4.0, 3.0, 2.0, 1.0, 0.0
+  rewardCredits: number;
+  timestamp: number;
+}
+
 export interface GameState {
   credits: number;
   hasClaimedInitialCredits: boolean;
@@ -31,12 +43,37 @@ export interface GameState {
     totalLosses: number;
     totalAdsWatched: number;
     simulatedMoneyLost: number; // Dalam Rupiah
+    nearMissCount?: number;
+    gamesPlayed?: {
+      higherLower: { played: number; wins: number };
+      crash: { played: number; wins: number };
+      wheel: { played: number; wins: number };
+      slot: { played: number; wins: number };
+      suit: { played: number; wins: number };
+    };
   };
+  quizStats: {
+    totalSessions: number;
+    cumulativeGpa: number;
+    topicStats: Record<
+      string,
+      { totalPoints: number; attempts: number; averageGradePoint: number }
+    >;
+  };
+  quizHistory: QuizSessionResult[];
   lastRound: GameRoundResult | null;
   history: GameRoundResult[];
 }
 
 const getRandomTargetLosses = () => Math.floor(Math.random() * 3) + 3; // 3, 4, atau 5
+
+const initialGamesPlayed = {
+  higherLower: { played: 0, wins: 0 },
+  crash: { played: 0, wins: 0 },
+  wheel: { played: 0, wins: 0 },
+  slot: { played: 0, wins: 0 },
+  suit: { played: 0, wins: 0 },
+};
 
 const initialState: GameState = {
   credits: 3, // 3 kredit gratis saat pertama kali mulai
@@ -50,7 +87,15 @@ const initialState: GameState = {
     totalLosses: 0,
     totalAdsWatched: 0,
     simulatedMoneyLost: 0,
+    nearMissCount: 0,
+    gamesPlayed: initialGamesPlayed,
   },
+  quizStats: {
+    totalSessions: 0,
+    cumulativeGpa: 0,
+    topicStats: {},
+  },
+  quizHistory: [],
   lastRound: null,
   history: [],
 };
@@ -104,8 +149,14 @@ const gameSlice = createSlice({
 
       // Hitung resultNumber agar sesuai dengan keputusan winner/loser
       let resultNumber: number;
+      if (!state.stats.gamesPlayed) {
+        state.stats.gamesPlayed = initialGamesPlayed;
+      }
+      state.stats.gamesPlayed.higherLower.played += 1;
+
       if (winner) {
         state.stats.totalWins += 1;
+        state.stats.gamesPlayed.higherLower.wins += 1;
         // User menang: berikan +2 kredit (setelah dikurangi 1 di awal, untung bersih = +1 kredit)
         state.credits += 2;
         if (choice === "higher") {
@@ -188,6 +239,18 @@ const gameSlice = createSlice({
         explanation = `Roket Meledak di ${crashPoint.toFixed(2)}x sebelum ditarik! Inilah jebakan FOMO judol: pemain selalu menunggu pengali lebih tinggi, sementara algoritma bandar sudah mematok ledakan di awal!`;
       }
 
+      if (!state.stats.gamesPlayed) {
+        state.stats.gamesPlayed = initialGamesPlayed;
+      }
+      state.stats.gamesPlayed.crash.played += 1;
+      if (cashedOut) {
+        state.stats.gamesPlayed.crash.wins += 1;
+      }
+      if (crashPoint <= 1.25) {
+        // Ledakan instan awal (jebakan dekat)
+        state.stats.nearMissCount = (state.stats.nearMissCount || 0) + 1;
+      }
+
       const roundResult: GameRoundResult = {
         gameType: "crash",
         gameTitle: "Roket Boncos",
@@ -219,6 +282,7 @@ const gameSlice = createSlice({
         segmentTitle,
         rewardCredits,
         winner,
+        isNearMiss,
         isFreeSpin,
         explanation,
       } = action.payload;
@@ -234,14 +298,24 @@ const gameSlice = createSlice({
       state.stats.totalPlayed += 1;
       state.stats.simulatedMoneyLost += 50000;
 
+      if (!state.stats.gamesPlayed) {
+        state.stats.gamesPlayed = initialGamesPlayed;
+      }
+      state.stats.gamesPlayed.wheel.played += 1;
+
       if (winner) {
         state.stats.totalWins += 1;
         state.lastWon = true;
         state.consecutiveLosses = 0;
+        state.stats.gamesPlayed.wheel.wins += 1;
       } else {
         state.stats.totalLosses += 1;
         state.lastWon = false;
         state.consecutiveLosses += 1;
+      }
+
+      if (isNearMiss) {
+        state.stats.nearMissCount = (state.stats.nearMissCount || 0) + 1;
       }
 
       const roundResult: GameRoundResult = {
@@ -271,7 +345,8 @@ const gameSlice = createSlice({
     ) => {
       if (state.credits <= 0) return;
 
-      const { reels, rewardCredits, winner, explanation } = action.payload;
+      const { reels, rewardCredits, winner, isNearMiss, explanation } =
+        action.payload;
 
       // Taruhan 1 kredit
       state.credits = Math.max(0, state.credits - 1 + rewardCredits);
@@ -287,6 +362,15 @@ const gameSlice = createSlice({
         state.lastWon = false;
         state.consecutiveLosses += 1;
       }
+
+      if (isNearMiss) {
+        state.stats.nearMissCount = (state.stats.nearMissCount || 0) + 1;
+      }
+      if (!state.stats.gamesPlayed) {
+        state.stats.gamesPlayed = initialGamesPlayed;
+      }
+      state.stats.gamesPlayed.slot.played += 1;
+      if (winner) state.stats.gamesPlayed.slot.wins += 1;
 
       const roundResult: GameRoundResult = {
         gameType: "slot",
@@ -330,10 +414,16 @@ const gameSlice = createSlice({
       state.stats.totalPlayed += 1;
       state.stats.simulatedMoneyLost += 50000;
 
+      if (!state.stats.gamesPlayed) {
+        state.stats.gamesPlayed = initialGamesPlayed;
+      }
+      state.stats.gamesPlayed.suit.played += 1;
+
       if (winner) {
         state.stats.totalWins += 1;
         state.lastWon = true;
         state.consecutiveLosses = 0;
+        state.stats.gamesPlayed.suit.wins += 1;
       } else if (!isDraw) {
         state.stats.totalLosses += 1;
         state.lastWon = false;
@@ -356,6 +446,80 @@ const gameSlice = createSlice({
       state.history = [roundResult, ...state.history.slice(0, 49)];
     },
 
+    recordQuizSession: (
+      state,
+      action: PayloadAction<{
+        topicId: string;
+        topicTitle: string;
+        correctCount: number;
+        totalQuestions: number;
+      }>
+    ) => {
+      const { topicId, topicTitle, correctCount, totalQuestions } = action.payload;
+      let grade: "A" | "B" | "C" | "D" | "E" = "E";
+      let gradePoint = 0.0;
+      let rewardCredits = 0;
+
+      if (correctCount === 4) {
+        grade = "A";
+        gradePoint = 4.0;
+        rewardCredits = 1;
+        state.credits += 1;
+      } else if (correctCount === 3) {
+        grade = "B";
+        gradePoint = 3.0;
+      } else if (correctCount === 2) {
+        grade = "C";
+        gradePoint = 2.0;
+      } else if (correctCount === 1) {
+        grade = "D";
+        gradePoint = 1.0;
+      } else {
+        grade = "E";
+        gradePoint = 0.0;
+      }
+
+      if (!state.quizStats) {
+        state.quizStats = { totalSessions: 0, cumulativeGpa: 0, topicStats: {} };
+      }
+      if (!state.quizStats.topicStats) {
+        state.quizStats.topicStats = {};
+      }
+      if (!state.quizStats.topicStats[topicId]) {
+        state.quizStats.topicStats[topicId] = { totalPoints: 0, attempts: 0, averageGradePoint: 0 };
+      }
+
+      const tStat = state.quizStats.topicStats[topicId];
+      tStat.totalPoints += gradePoint;
+      tStat.attempts += 1;
+      tStat.averageGradePoint = +(tStat.totalPoints / tStat.attempts).toFixed(2);
+
+      state.quizStats.totalSessions += 1;
+
+      // Recalculate overall cumulative GPA
+      let sumPoints = 0;
+      let sumAttempts = 0;
+      Object.values(state.quizStats.topicStats).forEach((ts) => {
+        sumPoints += ts.totalPoints;
+        sumAttempts += ts.attempts;
+      });
+      state.quizStats.cumulativeGpa = sumAttempts > 0 ? +(sumPoints / sumAttempts).toFixed(2) : 0;
+
+      const sessionRecord: QuizSessionResult = {
+        id: `${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        topicId,
+        topicTitle,
+        correctCount,
+        totalQuestions,
+        grade,
+        gradePoint,
+        rewardCredits,
+        timestamp: Date.now(),
+      };
+
+      state.quizHistory = [sessionRecord, ...(state.quizHistory || []).slice(0, 49)];
+    },
+
     watchAdReward: (state) => {
       state.credits += 5;
       state.stats.totalAdsWatched += 1;
@@ -372,6 +536,8 @@ const gameSlice = createSlice({
         totalLosses: 0,
         totalAdsWatched: 0,
         simulatedMoneyLost: 0,
+        nearMissCount: 0,
+        gamesPlayed: initialGamesPlayed,
       };
       state.lastRound = null;
       state.history = [];
@@ -385,6 +551,7 @@ export const {
   playWheelRound,
   playSlotRound,
   playSuitRound,
+  recordQuizSession,
   watchAdReward,
   resetGameStats,
 } = gameSlice.actions;

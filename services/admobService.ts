@@ -11,6 +11,11 @@ export const GOOGLE_TEST_INTERSTITIAL_ID = "ca-app-pub-3940256099942544/10331737
 export const PROD_INTERSTITIAL_AD_UNIT_ID =
   process.env.EXPO_PUBLIC_ADMOB_INTERSTITIAL_ID || GOOGLE_TEST_INTERSTITIAL_ID;
 
+// ID Unit Iklan Banner (Result & Quiz Screen):
+export const GOOGLE_TEST_BANNER_ID = "ca-app-pub-3940256099942544/6300978111";
+export const PROD_BANNER_AD_UNIT_ID =
+  process.env.EXPO_PUBLIC_ADMOB_BANNER_ID || "ca-app-pub-8703649064343703/9396879338";
+
 /**
  * Memeriksa apakah aplikasi saat ini berjalan di dalam Expo Go Client.
  * Expo Go adalah aplikasi sandbox pre-compiled dari Expo yang tidak menyertakan

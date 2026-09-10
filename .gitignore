@@ -57,6 +57,7 @@ yarn-error.log*
 .env.production.local
 
 # Firebase / Google Services Configurations
+.firebase/
 google-services.json
 android/app/google-services.json
 GoogleService-Info.plist

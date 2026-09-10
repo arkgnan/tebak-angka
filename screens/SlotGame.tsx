@@ -196,7 +196,11 @@ export default function SlotGame() {
     }
 
     if (isSpinning) return;
-    SoundEffects.playClick();
+    // Suara tuas ditarik dan desingan putaran reel mesin slot
+    SoundEffects.playSlotLever();
+    setTimeout(() => {
+      SoundEffects.playSlotReel();
+    }, 200);
 
     setIsSpinning(true);
     setLastResult(null);
@@ -204,11 +208,8 @@ export default function SlotGame() {
 
     const outcome = determineSlotOutcome();
 
-    // Acak tampilan sementara saat berputar dan suara tick
-    let tickCount = 0;
+    // Acak tampilan sementara saat berputar
     const interval = setInterval(() => {
-      tickCount++;
-      if (tickCount % 2 === 0) SoundEffects.playSpinTick();
       setReels([
         SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)].icon,
         SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)].icon,
@@ -218,28 +219,31 @@ export default function SlotGame() {
 
     // Reel 1 berhenti setelah 1.0 detik
     setTimeout(() => {
-      SoundEffects.playSpinTick();
+      SoundEffects.playSlotStop();
       setReels((prev) => [outcome.finalReels[0], prev[1], prev[2]]);
       spinReel(reel1Anim, 300).start();
     }, 1000);
 
     // Reel 2 berhenti setelah 1.8 detik
     setTimeout(() => {
-      SoundEffects.playSpinTick();
+      SoundEffects.playSlotStop();
       setReels((prev) => [outcome.finalReels[0], outcome.finalReels[1], prev[2]]);
       spinReel(reel2Anim, 300).start();
 
       // Jika reel 1 & 2 adalah 7️⃣, aktifkan efek suspense dramatis pada Reel 3!
       if (outcome.finalReels[0] === "7️⃣" && outcome.finalReels[1] === "7️⃣") {
         setSuspenseReel3(true);
+        SoundEffects.playTension();
       }
     }, 1800);
 
-    // Reel 3 berhenti setelah 2.8 detik (atau 3.6 detik jika suspense aktif)
+    // Reel 3 berhenti setelah 2.8 detik (atau 3.5 detik jika suspense aktif)
     const reel3Delay = outcome.isNearMiss ? 3500 : 2600;
 
     setTimeout(() => {
       clearInterval(interval);
+      SoundEffects.stopSlotReel();
+      SoundEffects.playSlotStop();
       setSuspenseReel3(false);
       setReels(outcome.finalReels);
       spinReel(reel3Anim, 400).start(() => {
