@@ -18,7 +18,8 @@ import { SoundEffects } from "../services/soundService";
 
 export default function Result() {
   const route = useRoute();
-  const { navigate } = useNavigation<StackNavigation>();
+  const navigation = useNavigation<StackNavigation>();
+  const { navigate, goBack } = navigation;
 
   const params = (route.params as any) || { winner: false, result: 0 };
   const {
@@ -40,6 +41,19 @@ export default function Result() {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showAdModal, setShowAdModal] = useState(false);
 
+  const handleBackNavigation = () => {
+    SoundEffects.playClick();
+    if (gameType === "suit") {
+      if (navigation.canGoBack()) {
+        goBack();
+      } else {
+        navigate("SuitGame");
+      }
+    } else {
+      navigate("Home");
+    }
+  };
+
   useEffect(() => {
     // Putar sound effect sesuai hasil menang/kalah
     if (winner) {
@@ -51,7 +65,7 @@ export default function Result() {
     }
 
     const backAction = () => {
-      navigate("Home");
+      handleBackNavigation();
       return true;
     };
     const backHandler = BackHandler.addEventListener(
@@ -59,7 +73,7 @@ export default function Result() {
       backAction,
     );
     return () => backHandler.remove();
-  }, [navigate, winner, isDraw]);
+  }, [navigation, winner, isDraw, gameType]);
 
   const handlePlayAgain = () => {
     SoundEffects.playClick();
@@ -286,9 +300,11 @@ export default function Result() {
 
           <TouchableOpacity
             style={styles.btnSecondary}
-            onPress={() => navigate("Home")}
+            onPress={handleBackNavigation}
           >
-            <Text style={styles.btnSecondaryText}>Kembali ke Beranda</Text>
+            <Text style={styles.btnSecondaryText}>
+              {gameType === "suit" ? "Kembali ke Suit Game" : "Kembali ke Beranda"}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

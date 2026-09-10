@@ -3,13 +3,14 @@ import { Platform } from "react-native";
 
 export const SCIENTIFIC_FACTS = [
   "Algoritma judi online dirancang agar pemain 100% bangkrut dalam jangka panjang. Coba semua permainan untuk membuktikannya!",
+  "Binary option bukanlah investasi atau trading legal: Bappebti & OJK menetapkannya sebagai judi online berkedok trading.",
   "Kemenangan di awal hanyalah umpan psikologis bandar agar hormon dopaminmu meledak dan kamu kecanduan deposit.",
   "Mitos 'jam gacor' dan 'pola spin' hanyalah tipuan affiliator untuk menjebak korban baru mendaftar.",
   "Secara matematis, Return to Player (RTP) selalu diatur menguntungkan bandar. Makin lama bermain, peluang bangkrut mendekati 100%.",
   "Efek Near-Miss (nyaris menang) sengaja diciptakan untuk menipu otakmu seolah kemenangan sudah dekat, padahal sudah diatur kalah.",
   "Di server judi online, taruhanmu sudah tercatat sebelum hasil diacak—bandar selalu tahu pilihanmu terlebih dahulu.",
   "Uang yang hilang di judi online tidak akan pernah kembali; mengejar kekalahan (chasing losses) adalah pintu utama jeratan pinjol.",
-  "Sistem crash game memanipulasi emosi FOMO (takut ketinggalan untung), padahal titik ledakan roket sudah dipatok bandar sejak detik pertama.",
+  "Sistem crash game memanipulasi emosi FOMO (takut ketinggalan untung), padahal titik ledakan roket sudah dipatok bandar sejak awal.",
   "Satu-satunya cara pasti untuk mengalahkan bandar judi online adalah dengan tidak pernah memainkannya sama sekali.",
 ];
 
