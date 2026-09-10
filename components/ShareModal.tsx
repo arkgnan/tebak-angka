@@ -86,7 +86,7 @@ export default function ShareModal({
         >
           {/* Judul & Penjelasan */}
           <View style={styles.headerSection}>
-            <Text style={styles.mainTitle}>📢 Bagikan Bahaya Judol</Text>
+            <Text style={styles.mainTitle}>Bagikan Edukasi Bahaya Judol</Text>
             <Text style={styles.subtitle}>
               Bantu selamatkan teman dan keluarga dari ilusi kemenangan judi online dan jeratan hutang atau pinjol.
             </Text>
@@ -124,7 +124,7 @@ export default function ShareModal({
           {/* Preview Box Pesan yang Akan Dibagikan (Tampil Utuh) */}
           <View style={styles.previewContainer}>
             <View style={styles.previewHeader}>
-              <Text style={styles.previewTag}>PRATINJAU PESAN LENGKAP</Text>
+              <Text style={styles.previewTag}>PRATINJAU PESAN</Text>
               <Text style={styles.previewHint}>Akan dikirim ke WhatsApp / Sosmed</Text>
             </View>
 

@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Linking,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -18,6 +19,14 @@ export default function EducationModal({
   visible,
   onClose,
 }: EducationModalProps) {
+  const handleOpenUrl = async (url: string) => {
+    try {
+      await Linking.openURL(url);
+    } catch (error) {
+      console.warn("Failed to open URL:", url, error);
+    }
+  };
+
   return (
     <Modal
       visible={visible}
@@ -44,7 +53,7 @@ export default function EducationModal({
           {/* Header Section */}
           <View style={styles.headerSection}>
             <Text style={styles.mainTitle}>
-              🧠 Membongkar Rahasia Bandar Judol
+              Bongkar Rahasia Bandar Judol
             </Text>
             <Text style={styles.subtitle}>
               Mengapa pemain TIDAK PERNAH bisa menang melawan algoritma bandar
@@ -139,13 +148,38 @@ export default function EducationModal({
               🚨 BUTUH BANTUAN BERHENTI DARI KECANDUAN?
             </Text>
             <Text style={styles.hotlineItem}>
-              • <Text style={styles.boldWhite}>Hotline SEJIWA Kemenkes:</Text> 119 (ext 8)
+              • <Text style={styles.boldWhite}>Hotline SEJIWA Kemenkes:</Text>{" "}
+              <Text
+                style={styles.linkText}
+                onPress={() => handleOpenUrl("tel:119")}
+              >
+                119 (ext 8)
+              </Text>
             </Text>
             <Text style={styles.hotlineItem}>
-              • <Text style={styles.boldWhite}>Aduan Konten Komdigi:</Text> aduankonten.id / WA: 0811-9224-545
+              • <Text style={styles.boldWhite}>Aduan Konten Komdigi:</Text>{" "}
+              <Text
+                style={styles.linkText}
+                onPress={() => handleOpenUrl("https://aduankonten.id")}
+              >
+                aduankonten.id
+              </Text>
+              {" / "}
+              <Text
+                style={[styles.linkText, styles.waLinkText]}
+                onPress={() => handleOpenUrl("https://wa.me/6281110015080")}
+              >
+                WA: 0811-1001-5080
+              </Text>
             </Text>
             <Text style={styles.hotlineItem}>
-              • <Text style={styles.boldWhite}>Cek & Lapor Rekening Penipu:</Text> cekrekening.id
+              • <Text style={styles.boldWhite}>Cek & Lapor Rekening Penipu:</Text>{" "}
+              <Text
+                style={styles.linkText}
+                onPress={() => handleOpenUrl("https://cekrekening.id")}
+              >
+                cekrekening.id
+              </Text>
             </Text>
           </View>
         </ScrollView>
@@ -281,6 +315,14 @@ const styles = StyleSheet.create({
   },
   boldWhite: {
     color: "#FFFFFF",
+    fontWeight: "700",
+  },
+  linkText: {
+    color: "#4FC3F7",
+    textDecorationLine: "underline",
+  },
+  waLinkText: {
+    color: "#25D366",
     fontWeight: "700",
   },
   bottomBar: {
