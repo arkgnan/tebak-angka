@@ -109,8 +109,13 @@ export default function BinaryOptionGame() {
     ).start();
   }, []);
 
-  // Pergerakan Harga Live Real-Time (Setiap 100ms)
+  // Pergerakan Harga Live Real-Time (Setiap 120ms saat idle atau active)
   useEffect(() => {
+    if (status === "won" || status === "lost") {
+      if (priceInterval.current) clearInterval(priceInterval.current);
+      return;
+    }
+
     priceInterval.current = setInterval(() => {
       setCurrentPrice((prev) => {
         const delta = (Math.random() - 0.49) * selectedAsset.step * selectedAsset.volatility;
@@ -123,7 +128,7 @@ export default function BinaryOptionGame() {
     return () => {
       if (priceInterval.current) clearInterval(priceInterval.current);
     };
-  }, [selectedAsset]);
+  }, [selectedAsset, status]);
 
   // Sesuaikan taruhan jika kredit berkurang
   useEffect(() => {
@@ -178,6 +183,7 @@ export default function BinaryOptionGame() {
       // Detik terakhir (0s): Evaluasi Hasil
       if (remaining <= 0) {
         if (timerInterval.current) clearInterval(timerInterval.current);
+        if (priceInterval.current) clearInterval(priceInterval.current);
 
         let finalPrice = currentPrice;
         if (willWin) {
@@ -204,6 +210,7 @@ export default function BinaryOptionGame() {
         }
 
         setCurrentPrice(finalPrice);
+        setPriceHistory((hist) => [...hist.slice(-19), finalPrice]);
 
         if (willWin) {
           SoundEffects.playWin();
@@ -283,12 +290,12 @@ export default function BinaryOptionGame() {
                 selectedAsset.id === asset.id && styles.assetTabItemActive,
               ]}
               onPress={() => {
-                if (status === "active") return;
+                if (status !== "idle") return;
                 SoundEffects.playClick();
                 setSelectedAsset(asset);
                 handleResetOrder();
               }}
-              disabled={status === "active"}
+              disabled={status !== "idle"}
             >
               <Text style={styles.assetTabSymbol}>{asset.symbol}</Text>
               <Text
@@ -431,15 +438,15 @@ export default function BinaryOptionGame() {
             </View>
           </View>
 
-          {/* Status Bar Floating di bawah chart */}
+          {/* Status Bar di bawah chart (non-floating) */}
           {status === "active" && (
             <View
               style={[
-                styles.floatingStatus,
+                styles.liveStatusBar,
                 isWinningLive ? styles.statusWinning : styles.statusLosing,
               ]}
             >
-              <Text style={styles.floatingStatusText}>
+              <Text style={styles.liveStatusText}>
                 {isWinningLive
                   ? `🟢 Posisi Menguntungkan (Potensi: +${betCredits} Kredit)`
                   : `🔴 Posisi Merugi (-${betCredits} Kredit)`}
@@ -459,15 +466,15 @@ export default function BinaryOptionGame() {
                 {status === "won"
                   ? "🎉 PROFIT! (Umpan Kemenangan)"
                   : isSpikeLoss
-                  ? "💥 JARUM DETIK TERAKHIR!"
-                  : "💀 SALDO HANGUS (Rungkad)"}
+                    ? "💥 JARUM DETIK TERAKHIR!"
+                    : "💀 SALDO HANGUS (Rungkad)"}
               </Text>
               <Text style={styles.resultDesc}>
                 {status === "won"
                   ? `Berhasil untung +${betCredits} Kredit. Bandar membiarkanmu menang agar kamu merasa hebat dan menaikkan nominal taruhan!`
                   : isSpikeLoss
-                  ? `Tepat di detik terakhir, grafik disentak 1 pips oleh algoritma bandar untuk menggagalkan kemenanganmu!`
-                  : `Tebakan arah salah. Di binary option, bandar selalu menang 100% modalmu saat kalah.`}
+                    ? `Tepat di detik terakhir, grafik disentak 1 pips oleh algoritma bandar untuk menggagalkan kemenanganmu!`
+                    : `Tebakan arah salah. Di binary option, bandar selalu menang 100% modalmu saat kalah.`}
               </Text>
               <TouchableOpacity
                 style={styles.btnNextRound}
@@ -496,11 +503,11 @@ export default function BinaryOptionGame() {
                   betCredits === num && styles.quickBetBtnActive,
                 ]}
                 onPress={() => {
-                  if (status === "active") return;
+                  if (status !== "idle") return;
                   SoundEffects.playClick();
                   setBetCredits(Math.min(credits || 1, num));
                 }}
-                disabled={status === "active"}
+                disabled={status !== "idle"}
               >
                 <Text
                   style={[
@@ -517,15 +524,15 @@ export default function BinaryOptionGame() {
               style={[
                 styles.quickBetBtn,
                 credits > 1 &&
-                  betCredits === Math.max(1, Math.floor(credits / 2)) &&
-                  styles.quickBetBtnActive,
+                betCredits === Math.max(1, Math.floor(credits / 2)) &&
+                styles.quickBetBtnActive,
               ]}
               onPress={() => {
-                if (status === "active") return;
+                if (status !== "idle") return;
                 SoundEffects.playClick();
                 setBetCredits(Math.max(1, Math.floor(credits / 2)));
               }}
-              disabled={status === "active"}
+              disabled={status !== "idle"}
             >
               <Text style={styles.quickBetBtnText}>½ Saldo</Text>
             </TouchableOpacity>
@@ -537,11 +544,11 @@ export default function BinaryOptionGame() {
                 betCredits === credits && credits > 0 && styles.quickBetBtnActive,
               ]}
               onPress={() => {
-                if (status === "active") return;
+                if (status !== "idle") return;
                 SoundEffects.playClick();
                 setBetCredits(Math.max(1, credits));
               }}
-              disabled={status === "active"}
+              disabled={status !== "idle"}
             >
               <Text style={[styles.quickBetBtnText, styles.textRed]}>All-In</Text>
             </TouchableOpacity>
@@ -555,10 +562,10 @@ export default function BinaryOptionGame() {
             style={[
               styles.actionBtn,
               styles.btnUp,
-              (status === "active" || credits <= 0) && styles.btnDisabled,
+              (status !== "idle" || credits <= 0) && styles.btnDisabled,
             ]}
             onPress={() => handleOpenTrade("up")}
-            disabled={status === "active"}
+            disabled={status !== "idle"}
             activeOpacity={0.8}
           >
             <Text style={styles.actionIcon}>▲</Text>
@@ -573,10 +580,10 @@ export default function BinaryOptionGame() {
             style={[
               styles.actionBtn,
               styles.btnDown,
-              (status === "active" || credits <= 0) && styles.btnDisabled,
+              (status !== "idle" || credits <= 0) && styles.btnDisabled,
             ]}
             onPress={() => handleOpenTrade("down")}
-            disabled={status === "active"}
+            disabled={status !== "idle"}
             activeOpacity={0.8}
           >
             <Text style={styles.actionIcon}>▼</Text>
@@ -846,23 +853,24 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: "900",
   },
-  floatingStatus: {
-    position: "absolute",
-    bottom: 22,
-    left: 20,
-    right: 20,
-    paddingVertical: 6,
+  liveStatusBar: {
+    marginTop: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     borderRadius: 8,
     alignItems: "center",
-    zIndex: 20,
+    justifyContent: "center",
+    borderWidth: 1,
   },
   statusWinning: {
-    backgroundColor: "rgba(0, 230, 118, 0.9)",
+    backgroundColor: "rgba(0, 230, 118, 0.15)",
+    borderColor: "#00E676",
   },
   statusLosing: {
-    backgroundColor: "rgba(255, 82, 82, 0.9)",
+    backgroundColor: "rgba(255, 82, 82, 0.15)",
+    borderColor: "#FF5252",
   },
-  floatingStatusText: {
+  liveStatusText: {
     color: "#FFFFFF",
     fontSize: 11,
     fontWeight: "800",
